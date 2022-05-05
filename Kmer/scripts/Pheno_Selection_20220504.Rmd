@@ -1,0 +1,56 @@
+---
+title: "Pheno_selection"
+author: "Weier Guo"
+date: "5/4/2022"
+output: html_document
+---
+
+## Introduction 
+Investigate 68 phenotypes to select segregated ones for 500 individuals. 
+
+## Working Process ##
+### Import Data ###
+#### library ####
+```{r}
+library(tidyverse)
+library(ggplot2)
+```
+
+#### dataset ####
+**headers**
+```{r}
+header <- readLines("../input/pheno_output_table_blup_20220428.txt",n=1)
+header <- header %>%
+  str_split("\t") %>%
+  unlist()
+```
+
+**data import**
+```{r}
+pheno <- read_tsv("../input/pheno_output_table_blup_20220428.txt",col_names = header,comment = "Old")
+pheno
+```
+
+### Sort phenotypes with less NA to more NA ###
+```{r}
+pheno.sum <- as.data.frame(matrix(header[-1], nrow = 68))
+data.n <- c()
+for (i in 2:69) {
+  noNA <- !is.na(pheno[[i]])
+  noNA <- noNA[noNA == TRUE]
+  data.n <- c(data.n, length(noNA))
+}
+pheno.sum <- cbind(pheno.sum,data.n) %>%
+  arrange(desc(data.n))
+pheno.sum
+```
+
+### Plot ###
+```{r}
+pheno %>%
+  ggplot(aes(x=1,y=Blup_Transfo_bud_burst_y1_v2)) +
+  geom_violin() +
+  geom_point(alpha=0.6)
+```
+
+
