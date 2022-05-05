@@ -1,2 +1,2 @@
-# CADVIP #
-**Characterize allelic and dosage variation in _Populus_**
+# CADVIP: Characterize allelic and dosage variation in _Populus_ #
+
