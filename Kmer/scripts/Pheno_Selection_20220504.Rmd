@@ -53,4 +53,11 @@ pheno %>%
   geom_point(alpha=0.6)
 ```
 
+### Check the maximum and minumn sample IDs in candidate phenotypes ###
+```{r}
+pheno %>%
+  arrange(desc(Blup_Transfo_AUC_bud_burst_y1_y2)) %>%
+  select(Old.Name,Blup_Transfo_AUC_bud_burst_y1_y2,everything())
+```
+
 
