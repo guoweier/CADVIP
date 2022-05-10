@@ -1,0 +1,53 @@
+---
+title: "Bulk_Samples"
+author: "Weier Guo"
+date: "5/6/2022"
+output: html_document
+---
+
+## INTRODUCTION ##
+Select sequencing names of 2 bulk samples (40+40). 
+
+## WORKING PROCESS ##
+
+### import data ###
+**library**
+```{r}
+library(tidyverse)
+library(ggplot2)
+```
+
+**dataset**
+```{r}
+# bulk1
+hd1 <- readLines("../input/bulk1_sample_20220506.txt",n=1)
+hd1 <- hd1 %>%
+  strsplit("\t") %>%
+  unlist()
+bulk1 <- read_tsv("../input/bulk1_sample_20220506.txt", col_names = hd1, comment = "Old") %>%
+  mutate(Seq.Name = as.character(substr(Seq_Name,1,8))) %>%
+  select(Old_Name,Seq.Name,Read_Count)
+bulk1
+```
+
+```{r}
+# bulk2
+hd2 <- readLines("../input/bulk2_sample_20220506.txt",n=1)
+hd2 <- hd2 %>%
+  strsplit("\t") %>%
+  unlist()
+bulk2 <- read_tsv("../input/bulk2_sample_20220506.txt", col_names = hd2, comment = "Old") %>%
+  mutate(Seq.Name = as.character(substr(Seq_Name,1,8))) %>%
+  select(Old_Name,Seq.Name,Read_Count)
+bulk2
+```
+
+
+### save data ###
+```{r}
+write.csv(bulk1,"../input/bulk1_sample_20220506.csv")
+write.csv(bulk2,"../input/bulk2_sample_20220506.csv")
+```
+
+
+
