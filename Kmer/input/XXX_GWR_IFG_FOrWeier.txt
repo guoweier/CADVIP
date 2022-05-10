@@ -1,0 +1,1350 @@
+Old.Name	CrossType																					
+GWR_100_1	GWR																					
+GWR_100_10	GWR																					
+GWR_100_100	GWR																					
+GWR_100_102	GWR																					
+GWR_100_103	GWR																					
+GWR_100_104	GWR																					
+GWR_100_105	GWR																					
+GWR_100_107	GWR																					
+GWR_100_108	GWR																					
+GWR_100_109	GWR																					
+GWR_100_11	GWR																					
+GWR_100_110	GWR																					
+GWR_100_111	GWR																					
+GWR_100_113	GWR																					
+GWR_100_116	GWR																					
+GWR_100_117	GWR																					
+GWR_100_119	GWR																					
+GWR_100_121	GWR																					
+GWR_100_122	GWR																					
+GWR_100_123	GWR																					
+GWR_100_124	GWR																					
+GWR_100_125	GWR																					
+GWR_100_126	GWR																					
+GWR_100_127	GWR																					
+GWR_100_129	GWR																					
+GWR_100_13	GWR																					
+GWR_100_130	GWR																					
+GWR_100_132	GWR																					
+GWR_100_133	GWR																					
+GWR_100_134	GWR																					
+GWR_100_135	GWR																					
+GWR_100_136	GWR																					
+GWR_100_137	GWR																					
+GWR_100_139	GWR																					
+GWR_100_14	GWR																					
+GWR_100_141	GWR																					
+GWR_100_143	GWR																					
+GWR_100_144	GWR																					
+GWR_100_147	GWR																					
+GWR_100_149	GWR																					
+GWR_100_150	GWR																					
+GWR_100_151	GWR																					
+GWR_100_152	GWR																					
+GWR_100_153	GWR																					
+GWR_100_154	GWR																					
+GWR_100_156	GWR																					
+GWR_100_157	GWR																					
+GWR_100_158	GWR																					
+GWR_100_159	GWR																					
+GWR_100_160	GWR																					
+GWR_100_162	GWR																					
+GWR_100_164	GWR																					
+GWR_100_167	GWR																					
+GWR_100_169	GWR																					
+GWR_100_17	GWR																					
+GWR_100_170	GWR																					
+GWR_100_172	GWR																					
+GWR_100_173	GWR																					
+GWR_100_175	GWR																					
+GWR_100_178	GWR																					
+GWR_100_179	GWR																					
+GWR_100_180	GWR																					
+GWR_100_182	GWR																					
+GWR_100_183	GWR																					
+GWR_100_185	GWR																					
+GWR_100_187	GWR																					
+GWR_100_19	GWR																					
+GWR_100_191	GWR																					
+GWR_100_192	.																					
+GWR_100_193	GWR																					
+GWR_100_194	GWR																					
+GWR_100_195	GWR																					
+GWR_100_196	GWR																					
+GWR_100_198	GWR																					
+GWR_100_199	GWR																					
+GWR_100_2	GWR																					
+GWR_100_20	GWR																					
+GWR_100_200	GWR																					
+GWR_100_203	GWR																					
+GWR_100_205	GWR																					
+GWR_100_209	GWR																					
+GWR_100_21	GWR																					
+GWR_100_210	GWR																					
+GWR_100_211	GWR																					
+GWR_100_212	GWR																					
+GWR_100_213	GWR																					
+GWR_100_214	GWR																					
+GWR_100_215	GWR																					
+GWR_100_217	GWR																					
+GWR_100_217A	.																					
+GWR_100_22	GWR																					
+GWR_100_220	GWR																					
+GWR_100_221	GWR																					
+GWR_100_222	GWR																					
+GWR_100_224	GWR																					
+GWR_100_227	GWR																					
+GWR_100_23	GWR																					
+GWR_100_231	GWR																					
+GWR_100_233	GWR																					
+GWR_100_234	GWR																					
+GWR_100_236	GWR																					
+GWR_100_237	GWR																					
+GWR_100_238	GWR																					
+GWR_100_239	GWR																					
+GWR_100_24	GWR																					
+GWR_100_240	GWR																					
+GWR_100_241	GWR																					
+GWR_100_242	GWR																					
+GWR_100_243	.																					
+GWR_100_244	GWR																					
+GWR_100_245	GWR																					
+GWR_100_246	GWR																					
+GWR_100_247	GWR																					
+GWR_100_248	GWR																					
+GWR_100_250	GWR																					
+GWR_100_251	GWR																					
+GWR_100_252	GWR																					
+GWR_100_254	GWR																					
+GWR_100_255	GWR																					
+GWR_100_257	GWR																					
+GWR_100_258	GWR																					
+GWR_100_259	GWR																					
+GWR_100_26	GWR																					
+GWR_100_260	GWR																					
+GWR_100_261	GWR																					
+GWR_100_262	GWR																					
+GWR_100_263	GWR																					
+GWR_100_264	GWR																					
+GWR_100_265	GWR																					
+GWR_100_266	GWR																					
+GWR_100_267	GWR																					
+GWR_100_27	GWR																					
+GWR_100_271	GWR																					
+GWR_100_272	GWR																					
+GWR_100_273	GWR																					
+GWR_100_274	GWR																					
+GWR_100_275	GWR																					
+GWR_100_276	GWR																					
+GWR_100_277	GWR																					
+GWR_100_278	GWR																					
+GWR_100_28	GWR																					
+GWR_100_280	GWR																					
+GWR_100_281	GWR																					
+GWR_100_282	GWR																					
+GWR_100_283	GWR																					
+GWR_100_284	GWR																					
+GWR_100_285	GWR																					
+GWR_100_286	GWR																					
+GWR_100_287	GWR																					
+GWR_100_289	GWR																					
+GWR_100_29	GWR																					
+GWR_100_290	.																					
+GWR_100_292	GWR																					
+GWR_100_294	GWR																					
+GWR_100_295	GWR																					
+GWR_100_296	GWR																					
+GWR_100_298	GWR																					
+GWR_100_3	GWR																					
+GWR_100_30	GWR																					
+GWR_100_300	GWR																					
+GWR_100_301	GWR																					
+GWR_100_302	GWR																					
+GWR_100_303	GWR																					
+GWR_100_304	GWR																					
+GWR_100_306	GWR																					
+GWR_100_308	GWR																					
+GWR_100_309	GWR																					
+GWR_100_310	.																					
+GWR_100_312	GWR																					
+GWR_100_313	GWR																					
+GWR_100_314	GWR																					
+GWR_100_315	GWR																					
+GWR_100_316	GWR																					
+GWR_100_319	GWR																					
+GWR_100_32	GWR																					
+GWR_100_320	GWR																					
+GWR_100_321	GWR																					
+GWR_100_322	GWR																					
+GWR_100_323	GWR																					
+GWR_100_324	GWR																					
+GWR_100_326	GWR																					
+GWR_100_327	GWR																					
+GWR_100_328	GWR																					
+GWR_100_329	GWR																					
+GWR_100_33	GWR																					
+GWR_100_330	GWR																					
+GWR_100_332	GWR																					
+GWR_100_333	GWR																					
+GWR_100_334	GWR																					
+GWR_100_335	GWR																					
+GWR_100_336	GWR																					
+GWR_100_338	GWR																					
+GWR_100_339	GWR																					
+GWR_100_34	GWR																					
+GWR_100_340	GWR																					
+GWR_100_341	GWR																					
+GWR_100_342	GWR																					
+GWR_100_343	GWR																					
+GWR_100_344	GWR																					
+GWR_100_345	GWR																					
+GWR_100_346	GWR																					
+GWR_100_349	GWR																					
+GWR_100_35	.																					
+GWR_100_350	GWR																					
+GWR_100_352	GWR																					
+GWR_100_355	GWR																					
+GWR_100_356	GWR																					
+GWR_100_357	GWR																					
+GWR_100_360	GWR																					
+GWR_100_364	GWR																					
+GWR_100_369	GWR																					
+GWR_100_37	GWR																					
+GWR_100_370	GWR																					
+GWR_100_371	GWR																					
+GWR_100_372	GWR																					
+GWR_100_373	GWR																					
+GWR_100_374	GWR																					
+GWR_100_376	GWR																					
+GWR_100_377	GWR																					
+GWR_100_378	GWR																					
+GWR_100_379	GWR																					
+GWR_100_38	GWR																					
+GWR_100_385	GWR																					
+GWR_100_386	GWR																					
+GWR_100_387	GWR																					
+GWR_100_389	GWR																					
+GWR_100_39	GWR																					
+GWR_100_391	GWR																					
+GWR_100_392	GWR																					
+GWR_100_394	GWR																					
+GWR_100_397	GWR																					
+GWR_100_399	GWR																					
+GWR_100_4	GWR																					
+GWR_100_40	GWR																					
+GWR_100_400	GWR																					
+GWR_100_401	GWR																					
+GWR_100_402	GWR																					
+GWR_100_403	GWR																					
+GWR_100_407	GWR																					
+GWR_100_413	GWR																					
+GWR_100_414	GWR																					
+GWR_100_415	GWR																					
+GWR_100_416	GWR																					
+GWR_100_417	GWR																					
+GWR_100_42	GWR																					
+GWR_100_420	GWR																					
+GWR_100_421	GWR																					
+GWR_100_422	GWR																					
+GWR_100_423	GWR																					
+GWR_100_426	GWR																					
+GWR_100_428	GWR																					
+GWR_100_430	.																					
+GWR_100_431	GWR																					
+GWR_100_433	GWR																					
+GWR_100_435	GWR																					
+GWR_100_437	GWR																					
+GWR_100_438	GWR																					
+GWR_100_439	GWR																					
+GWR_100_44	GWR																					
+GWR_100_441	GWR																					
+GWR_100_442	GWR																					
+GWR_100_443	GWR																					
+GWR_100_444	GWR																					
+GWR_100_445	GWR																					
+GWR_100_446	GWR																					
+GWR_100_447	GWR																					
+GWR_100_448	GWR																					
+GWR_100_449	GWR																					
+GWR_100_450	GWR																					
+GWR_100_451	GWR																					
+GWR_100_453	GWR																					
+GWR_100_455	.																					
+GWR_100_456	GWR																					
+GWR_100_457	GWR																					
+GWR_100_458	GWR																					
+GWR_100_459	GWR																					
+GWR_100_46	GWR																					
+GWR_100_460	GWR																					
+GWR_100_461	GWR																					
+GWR_100_462	GWR																					
+GWR_100_464	GWR																					
+GWR_100_465	GWR																					
+GWR_100_466	GWR																					
+GWR_100_467	GWR																					
+GWR_100_468	GWR																					
+GWR_100_470	GWR																					
+GWR_100_471	GWR																					
+GWR_100_472	GWR																					
+GWR_100_473	GWR																					
+GWR_100_474	GWR																					
+GWR_100_475	GWR																					
+GWR_100_476	GWR																					
+GWR_100_477	GWR																					
+GWR_100_478	GWR																					
+GWR_100_479	GWR																					
+GWR_100_48	GWR																					
+GWR_100_480	GWR																					
+GWR_100_481	GWR																					
+GWR_100_482	GWR																					
+GWR_100_483	GWR																					
+GWR_100_484	GWR																					
+GWR_100_485	GWR																					
+GWR_100_486	GWR																					
+GWR_100_487	GWR																					
+GWR_100_488	GWR																					
+GWR_100_489	GWR																					
+GWR_100_49	GWR																					
+GWR_100_490	GWR																					
+GWR_100_491	GWR																					
+GWR_100_492	GWR																					
+GWR_100_494	GWR																					
+GWR_100_495	GWR																					
+GWR_100_497	GWR																					
+GWR_100_499	GWR																					
+GWR_100_5	GWR																					
+GWR_100_50	GWR																					
+GWR_100_501	GWR																					
+GWR_100_503	GWR																					
+GWR_100_504	GWR																					
+GWR_100_505	GWR																					
+GWR_100_508	.																					
+GWR_100_51	GWR																					
+GWR_100_52	GWR																					
+GWR_100_53	GWR																					
+GWR_100_54	GWR																					
+GWR_100_55	GWR																					
+GWR_100_58	GWR																					
+GWR_100_61	GWR																					
+GWR_100_62	GWR																					
+GWR_100_63	GWR																					
+GWR_100_65	GWR																					
+GWR_100_66	GWR																					
+GWR_100_68	GWR																					
+GWR_100_69	GWR																					
+GWR_100_70	GWR																					
+GWR_100_71	GWR																					
+GWR_100_72	GWR																					
+GWR_100_73	GWR																					
+GWR_100_74	GWR																					
+GWR_100_75	GWR																					
+GWR_100_76	GWR																					
+GWR_100_78	GWR																					
+GWR_100_79	GWR																					
+GWR_100_80	GWR																					
+GWR_100_81	GWR																					
+GWR_100_83	GWR																					
+GWR_100_84	GWR																					
+GWR_100_85	GWR																					
+GWR_100_86	GWR																					
+GWR_100_88	GWR																					
+GWR_100_89	GWR																					
+GWR_100_90	GWR																					
+GWR_100_91	GWR																					
+GWR_100_92	GWR																					
+GWR_100_94	GWR																					
+GWR_100_95	GWR																					
+GWR_100_96	GWR																					
+GWR_100_99	GWR																					
+GWR_287	.																					
+IFG_0_1	IFG																					
+IFG_0_10	IFG																					
+IFG_0_13	IFG																					
+IFG_0_14	IFG																					
+IFG_0_15	IFG																					
+IFG_0_17	IFG																					
+IFG_0_19	IFG																					
+IFG_0_2	IFG																					
+IFG_0_20	IFG																					
+IFG_0_21	IFG																					
+IFG_0_22	IFG																					
+IFG_0_24	IFG																					
+IFG_0_25	IFG																					
+IFG_0_27	IFG																					
+IFG_0_28	IFG																					
+IFG_0_29	IFG																					
+IFG_0_3	IFG																					
+IFG_0_30	IFG																					
+IFG_0_32	IFG																					
+IFG_0_33	IFG																					
+IFG_0_34	IFG																					
+IFG_0_35	IFG																					
+IFG_0_36	IFG																					
+IFG_0_37	IFG																					
+IFG_0_4	IFG																					
+IFG_0_40	IFG																					
+IFG_0_41	IFG																					
+IFG_0_42	GWR																					
+IFG_0_44	IFG																					
+IFG_0_45	IFG																					
+IFG_0_46	IFG																					
+IFG_0_5	IFG																					
+IFG_0_50	IFG																					
+IFG_0_52	IFG																					
+IFG_0_55	IFG																					
+IFG_0_56	IFG																					
+IFG_0_57	IFG																					
+IFG_0_58	IFG																					
+IFG_0_59	IFG																					
+IFG_0_61	IFG																					
+IFG_0_62	IFG																					
+IFG_0_63	IFG																					
+IFG_0_64	IFG																					
+IFG_0_65	IFG																					
+IFG_0_66	IFG																					
+IFG_0_67	IFG																					
+IFG_0_68	IFG																					
+IFG_0_69	IFG																					
+IFG_0_7	IFG																					
+IFG_0_70	IFG																					
+IFG_0_71	IFG																					
+IFG_0_76	IFG																					
+IFG_0_78	IFG																					
+IFG_0_79	IFG																					
+IFG_0_8	IFG																					
+IFG_0_80	IFG																					
+IFG_0_9	IFG																					
+IFG_100_10	IFG																					
+IFG_100_100	IFG																					
+IFG_100_101	IFG																					
+IFG_100_102	IFG																					
+IFG_100_105	IFG																					
+IFG_100_106	IFG																					
+IFG_100_11	IFG																					
+IFG_100_12	IFG																					
+IFG_100_14	IFG																					
+IFG_100_15	IFG																					
+IFG_100_16	IFG																					
+IFG_100_17	.																					
+IFG_100_18	IFG																					
+IFG_100_19	IFG																					
+IFG_100_2	IFG																					
+IFG_100_20	IFG																					
+IFG_100_21	.																					
+IFG_100_22	IFG																					
+IFG_100_23	IFG																					
+IFG_100_24	IFG																					
+IFG_100_25	IFG																					
+IFG_100_26	IFG																					
+IFG_100_27	IFG																					
+IFG_100_28	IFG																					
+IFG_100_29	IFG																					
+IFG_100_3	IFG																					
+IFG_100_30	IFG																					
+IFG_100_32	IFG																					
+IFG_100_33	IFG																					
+IFG_100_34	IFG																					
+IFG_100_35	IFG																					
+IFG_100_36	IFG																					
+IFG_100_38	IFG																					
+IFG_100_39	IFG																					
+IFG_100_4	IFG																					
+IFG_100_40	IFG																					
+IFG_100_41	IFG																					
+IFG_100_42	IFG																					
+IFG_100_43	IFG																					
+IFG_100_44	IFG																					
+IFG_100_45	IFG																					
+IFG_100_46	IFG																					
+IFG_100_462	GWR																					
+IFG_100_47	IFG																					
+IFG_100_48	.																					
+IFG_100_49	IFG																					
+IFG_100_5	IFG																					
+IFG_100_50	IFG																					
+IFG_100_51	IFG																					
+IFG_100_52	IFG																					
+IFG_100_53	IFG																					
+IFG_100_54	IFG																					
+IFG_100_55	IFG																					
+IFG_100_56	IFG																					
+IFG_100_57	IFG																					
+IFG_100_58	IFG																					
+IFG_100_59	IFG																					
+IFG_100_6	IFG																					
+IFG_100_60	IFG																					
+IFG_100_61	IFG																					
+IFG_100_62	IFG																					
+IFG_100_64	IFG																					
+IFG_100_66	IFG																					
+IFG_100_67	IFG																					
+IFG_100_68	IFG																					
+IFG_100_69	IFG																					
+IFG_100_7	IFG																					
+IFG_100_72	IFG																					
+IFG_100_73	IFG																					
+IFG_100_74	IFG																					
+IFG_100_75	IFG																					
+IFG_100_76	IFG																					
+IFG_100_77	IFG																					
+IFG_100_78	IFG																					
+IFG_100_79	IFG																					
+IFG_100_8	IFG																					
+IFG_100_80	IFG																					
+IFG_100_81	IFG																					
+IFG_100_83	.																					
+IFG_100_84	IFG																					
+IFG_100_86	IFG																					
+IFG_100_87	IFG																					
+IFG_100_9	IFG																					
+IFG_100_94	IFG																					
+IFG_100_95	IFG																					
+IFG_100_98	IFG																					
+IFG_100_99	IFG																					
+IGF_100_55	.																					
+XXX_100_1	IFG																					
+XXX_100_10	GWR																					
+XXX_100_100	GWR																					
+XXX_100_101	GWR																					
+XXX_100_102	GWR																					
+XXX_100_103	IFG																					
+XXX_100_105	GWR																					
+XXX_100_106	GWR																					
+XXX_100_107	GWR																					
+XXX_100_108	GWR																					
+XXX_100_109	GWR																					
+XXX_100_11	GWR																					
+XXX_100_110	GWR																					
+XXX_100_112	GWR																					
+XXX_100_113	IFG																					
+XXX_100_114	GWR																					
+XXX_100_115	GWR																					
+XXX_100_116	GWR																					
+XXX_100_117	GWR																					
+XXX_100_118	GWR																					
+XXX_100_119	GWR																					
+XXX_100_12	IFG																					
+XXX_100_120	GWR																					
+XXX_100_121	GWR																					
+XXX_100_122	GWR																					
+XXX_100_123	IFG																					
+XXX_100_124	GWR																					
+XXX_100_126	GWR																					
+XXX_100_127	GWR																					
+XXX_100_128	GWR																					
+XXX_100_129	GWR																					
+XXX_100_13	GWR																					
+XXX_100_130	GWR																					
+XXX_100_132	GWR																					
+XXX_100_133	GWR																					
+XXX_100_134	.																					
+XXX_100_135	GWR																					
+XXX_100_136	.																					
+XXX_100_137	GWR																					
+XXX_100_138	.																					
+XXX_100_139	GWR																					
+XXX_100_14	IFG																					
+XXX_100_140	GWR																					
+XXX_100_147	.																					
+XXX_100_149	GWR																					
+XXX_100_15	GWR																					
+XXX_100_151	IFG																					
+XXX_100_152	IFG																					
+XXX_100_153	GWR																					
+XXX_100_154	IFG																					
+XXX_100_155	GWR																					
+XXX_100_156	IFG																					
+XXX_100_157	IFG																					
+XXX_100_158	GWR																					
+XXX_100_159	GWR																					
+XXX_100_16	IFG																					
+XXX_100_160	GWR																					
+XXX_100_161	GWR																					
+XXX_100_163	GWR																					
+XXX_100_165	GWR																					
+XXX_100_166	GWR																					
+XXX_100_167	GWR																					
+XXX_100_168	IFG																					
+XXX_100_17	IFG																					
+XXX_100_170	GWR																					
+XXX_100_171	GWR																					
+XXX_100_173	GWR																					
+XXX_100_174	GWR																					
+XXX_100_175	GWR																					
+XXX_100_176	GWR																					
+XXX_100_177	GWR																					
+XXX_100_178	GWR																					
+XXX_100_179	GWR																					
+XXX_100_18	IFG																					
+XXX_100_183	GWR																					
+XXX_100_185	GWR																					
+XXX_100_186	GWR																					
+XXX_100_19	IFG																					
+XXX_100_2	GWR																					
+XXX_100_20	GWR																					
+XXX_100_21	IFG																					
+XXX_100_226	IFG																					
+XXX_100_227	IFG																					
+XXX_100_228	GWR																					
+XXX_100_229	GWR																					
+XXX_100_23	GWR																					
+XXX_100_230	IFG																					
+XXX_100_231	IFG																					
+XXX_100_232	GWR																					
+XXX_100_233	GWR																					
+XXX_100_234	GWR																					
+XXX_100_235	GWR																					
+XXX_100_237	GWR																					
+XXX_100_239	.																					
+XXX_100_24	GWR																					
+XXX_100_240	GWR																					
+XXX_100_241	GWR																					
+XXX_100_242	GWR																					
+XXX_100_243	IFG																					
+XXX_100_245	GWR																					
+XXX_100_246	GWR																					
+XXX_100_247	GWR																					
+XXX_100_248	IFG																					
+XXX_100_249	GWR																					
+XXX_100_25	GWR																					
+XXX_100_250	IFG																					
+XXX_100_26	GWR																					
+XXX_100_27	GWR																					
+XXX_100_28	GWR																					
+XXX_100_29	GWR																					
+XXX_100_3	IFG																					
+XXX_100_30	GWR																					
+XXX_100_31	GWR																					
+XXX_100_32	GWR																					
+XXX_100_33	GWR																					
+XXX_100_334	.																					
+XXX_100_34	GWR																					
+XXX_100_35	GWR																					
+XXX_100_350	.																					
+XXX_100_36	GWR																					
+XXX_100_37	GWR																					
+XXX_100_38	GWR																					
+XXX_100_39	GWR																					
+XXX_100_4	IFG																					
+XXX_100_40	GWR																					
+XXX_100_41	GWR																					
+XXX_100_42	IFG																					
+XXX_100_43	IFG																					
+XXX_100_44	IFG																					
+XXX_100_45	IFG																					
+XXX_100_46	IFG																					
+XXX_100_47	IFG																					
+XXX_100_48	IFG																					
+XXX_100_49	IFG																					
+XXX_100_5	GWR																					
+XXX_100_50	GWR																					
+XXX_100_51	GWR																					
+XXX_100_52	IFG																					
+XXX_100_53	IFG																					
+XXX_100_54	GWR																					
+XXX_100_55	GWR																					
+XXX_100_56	GWR																					
+XXX_100_57	GWR																					
+XXX_100_58	GWR																					
+XXX_100_59	GWR																					
+XXX_100_6	IFG																					
+XXX_100_60	GWR																					
+XXX_100_61	GWR																					
+XXX_100_62	GWR																					
+XXX_100_63	GWR																					
+XXX_100_64	GWR																					
+XXX_100_65	GWR																					
+XXX_100_66	GWR																					
+XXX_100_67	GWR																					
+XXX_100_68	GWR																					
+XXX_100_69	IFG																					
+XXX_100_7	IFG																					
+XXX_100_70	GWR																					
+XXX_100_71	GWR																					
+XXX_100_72	GWR																					
+XXX_100_73	GWR																					
+XXX_100_74	GWR																					
+XXX_100_75	IFG																					
+XXX_100_76	GWR																					
+XXX_100_77	IFG																					
+XXX_100_78	IFG																					
+XXX_100_79	IFG																					
+XXX_100_8	GWR																					
+XXX_100_80	GWR																					
+XXX_100_81	IFG																					
+XXX_100_82	GWR																					
+XXX_100_83	GWR																					
+XXX_100_84	GWR																					
+XXX_100_86	IFG																					
+XXX_100_87	.																					
+XXX_100_88	IFG																					
+XXX_100_89	GWR																					
+XXX_100_9	GWR																					
+XXX_100_90	GWR																					
+XXX_100_91	GWR																					
+XXX_100_92	GWR																					
+XXX_100_93	GWR																					
+XXX_100_95	IFG																					
+XXX_100_96	GWR																					
+XXX_100_97	GWR																					
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
+																						
