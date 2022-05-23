@@ -17,7 +17,7 @@ library(ggplot2)
 ```
 
 #### dataset ####
-**headers**
+**biomass headers**
 ```{r}
 header <- readLines("../input/pheno_output_table_blup_20220428.txt",n=1)
 header <- header %>%
@@ -25,10 +25,25 @@ header <- header %>%
   unlist()
 ```
 
-**data import**
+**vessel headers**
+```{r}
+header.vessel <- readLines("../input/pheno_vessel_20220522.csv",n=1)
+header.vessel <- header.vessel %>%
+  str_split(",") %>%
+  unlist()
+```
+
+**biomass data import**
 ```{r}
 pheno <- read_tsv("../input/pheno_output_table_blup_20220428.txt",col_names = header,comment = "Old")
 pheno
+```
+
+**vessel data import**
+```{r}
+vessel <- read_csv("../input/pheno_vessel_20220522.csv",col_names = header.vessel,comment = "Geno")
+colnames(vessel) <- c("Old.Name","BLUP_tree_height","BLUP_mvd","BLUP_cmvd","BLUP_cvf","BLUP_vgi")
+vessel
 ```
 
 **Cross Type**
@@ -43,33 +58,53 @@ crosstype <- read_tsv("../input/XXX_GWR_IFG_FOrWeier.txt", col_names = headerTP,
 crosstype
 ```
 
-### combine two data frames ###
+### select only GWR genotypes ###
+**biomass**
 ```{r}
 pheno <- left_join(pheno,crosstype, by="Old.Name")
 pheno
 ```
-
+**select only GWR genotype in vessel dataset**
+```{r}
+vessel <- left_join(vessel,crosstype,by = "Old.Name")
+vessel
+```
 
 ### Remove IFG samples ###
+**biomass**
 ```{r}
 pheno <- pheno %>%
   filter(CrossType == "GWR") 
 pheno
 ```
-
-### plot all phenotypes ###
+**remove IFG genotypes in vessel dataset**
 ```{r}
-pl <- ggplot(pheno,aes(x = pheno[[21]])) +
-  geom_histogram() +
-  ggtitle(colnames(pheno[21])) 
-pl
-ggsave("../output/BiomassPheno20_20220511.png")
+vessel <- vessel %>%
+  filter(CrossType == "GWR") 
+vessel
 ```
 
+### plot all phenotypes ###
+**biomass**
+```{r}
+pl <- ggplot(pheno,aes(x = pheno$Blup_Transfo_AUC_color_y1_y2_y3)) +
+  geom_histogram() +
+  ggtitle(colnames(pheno$Blup_Transfo_AUC_color_y1_y2_y3)) 
+pl
+ggsave("../output/BiomassPheno1_20220511_2.png")
+```
 
-
+**plot pheno distribution in vessel dataset**
+```{r}
+pl <- ggplot(vessel,aes(x = vessel$BLUP_vgi)) +
+  geom_histogram() +
+  ggtitle(colnames(vessel$BLUP_vgi)) 
+pl
+ggsave("../output/VesselPheno5_20220522.png")
+```
 
 ### Sort phenotypes with less NA to more NA ###
+**biomass**
 ```{r}
 pheno.sum <- as.data.frame(matrix(header[-1], nrow = 68))
 data.n <- c()
@@ -82,22 +117,124 @@ pheno.sum <- cbind(pheno.sum,data.n) %>%
   arrange(desc(data.n))
 pheno.sum
 ```
-
-### Plot ###
+**vessel**
 ```{r}
-pheno %>%
-  ggplot(aes(x=1,y=Blup_Transfo_bud_burst_y1_v2)) +
-  geom_violin() +
-  geom_point(alpha=0.6)
+vessel.sum <- as.data.frame(matrix(header.vessel[-1], nrow = 5))
+data.n <- c()
+for (i in 2:6) {
+  noNA <- !is.na(vessel[[i]])
+  noNA <- noNA[noNA == TRUE]
+  data.n <- c(data.n, length(noNA))
+}
+vessel.sum <- cbind(vessel.sum,data.n) %>%
+  arrange(desc(data.n))
+vessel.sum
 ```
+_The results show no NA._
 
 ### Check the maximum and minumn sample IDs in candidate phenotypes ###
+**biomass**
 ```{r}
 pheno <- pheno %>%
-  arrange(desc(Blup_Transfo_AUC_bud_burst_y1_y2)) %>%
-  select(Old.Name,Blup_Transfo_AUC_bud_burst_y1_y2,Blup_Transfo_bud_burst_y1_y2,Blup_Transfo_time_serie_bud_burst_y1_y2, Blup_Transfo_bud_burst_y1_y2_v2,Blup_Transfo_time_serie_bud_burst_y1_y2_v2, everything())
+  arrange(desc(Blup_Transfo_time_serie_color_y1_y2_y3)) %>%
+  select(Old.Name,Blup_Transfo_time_serie_color_y1_y2_y3, everything())
 pheno
 ```
+**vessel**
+```{r}
+vessel <- vessel %>%
+  arrange(desc(BLUP_tree_height)) %>%
+  select(Old.Name,BLUP_tree_height, everything())
+vessel
+```
+
+### Establish bulked samples ###
+**biomass**
+```{r}
+pheno1 <- pheno
+bulk1 <- pheno1 %>%
+  filter(Old.Name == Old.Name[1:40]) %>%
+  select(Old.Name, Blup_Transfo_time_serie_color_y1_y2_y3)
+bulk1
+```
+
+```{r}
+pheno2 <- pheno %>%
+  arrange(Blup_Transfo_time_serie_color_y1_y2_y3) 
+
+bulk2 <- pheno2 %>%
+  filter(Old.Name == Old.Name[1:40]) %>%
+  select(Old.Name, Blup_Transfo_time_serie_color_y1_y2_y3)
+bulk2
+```
+
+**vessel**
+```{r}
+vessel1 <- vessel
+bulk1_height <- vessel1 %>%
+  filter(Old.Name == Old.Name[1:40]) %>%
+  select(Old.Name, BLUP_tree_height)
+bulk1_height
+```
+
+```{r}
+vessel2 <- vessel %>%
+  arrange(BLUP_tree_height) 
+
+bulk2_height <- vessel2 %>%
+  filter(Old.Name == Old.Name[1:40]) %>%
+  select(Old.Name, BLUP_tree_height)
+bulk2_height
+```
+
+### combine bulk1 and bulk2
+**biomass**
+```{r}
+bulk1 <- bulk1 %>%
+  mutate(Group = 1)
+
+bulk2 <- bulk2 %>%
+  mutate(Group = 2)
+
+Bulk <- full_join(bulk1, bulk2, by=c("Old.Name","Blup_Transfo_time_serie_color_y1_y2_y3","Group"))
+Bulk
+```
+**vessel**
+```{r}
+bulk1_height <- bulk1_height %>%
+  mutate(Group = 1)
+
+bulk2_height <- bulk2_height %>%
+  mutate(Group = 2)
+
+Bulk_height <- full_join(bulk1_height, bulk2_height,by=c("Old.Name","BLUP_tree_height","Group"))
+Bulk_height
+```
+
+### Check bulk1 and bulk2 differences using t-test ###
+#### Are the data from each of the 2 groups follow a normal distribution? ####
+
+Null hypothesis: the data are normally distributed  
+Alternative hypothesis: the data are not normally distributed  
+use the functions with() and shapiro.test() to compute Shapiro-Wilk test for each group of samples.  
+```{r}
+# Shapiro-Wilk normality test for Bulk1
+with(Bulk, shapiro.test(Blup_Transfo_time_serie_color_y1_y2_y3[Group == "1"]))
+# Shapiro-Wilk normality test for Bulk2
+with(Bulk, shapiro.test(Blup_Transfo_time_serie_color_y1_y2_y3[Group == "2"])) 
+```
+#### Do the two populations have the same variances? ####
+```{r}
+res.ftest <- var.test(Blup_Transfo_time_serie_color_y1_y2_y3 ~ Group, data = Bulk)
+res.ftest
+```
+
+#### Compute unpaired two-samples t-test ####
+```{r}
+res <- t.test(Blup_Transfo_time_serie_color_y1_y2_y3 ~ Group, data = Bulk, var.equal = TRUE)
+res
+```
+
 
 ### save selected GWR files ###
 ```{r}
