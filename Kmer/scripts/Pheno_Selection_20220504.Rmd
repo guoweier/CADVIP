@@ -136,8 +136,8 @@ _The results show no NA._
 **biomass**
 ```{r}
 pheno <- pheno %>%
-  arrange(desc(Blup_Transfo_time_serie_color_y1_y2_y3)) %>%
-  select(Old.Name,Blup_Transfo_time_serie_color_y1_y2_y3, everything())
+  arrange(desc(Blup_Transfo_time_serie_color_y1)) %>%
+  select(Old.Name,Blup_Transfo_time_serie_color_y1, everything())
 pheno
 ```
 **vessel**
@@ -154,17 +154,17 @@ vessel
 pheno1 <- pheno
 bulk1 <- pheno1 %>%
   filter(Old.Name == Old.Name[1:40]) %>%
-  select(Old.Name, Blup_Transfo_time_serie_color_y1_y2_y3)
+  select(Old.Name,Blup_Transfo_time_serie_color_y1)
 bulk1
 ```
 
 ```{r}
 pheno2 <- pheno %>%
-  arrange(Blup_Transfo_time_serie_color_y1_y2_y3) 
+  arrange(Blup_Transfo_time_serie_color_y1) 
 
 bulk2 <- pheno2 %>%
   filter(Old.Name == Old.Name[1:40]) %>%
-  select(Old.Name, Blup_Transfo_time_serie_color_y1_y2_y3)
+  select(Old.Name, Blup_Transfo_time_serie_color_y1)
 bulk2
 ```
 
@@ -196,7 +196,7 @@ bulk1 <- bulk1 %>%
 bulk2 <- bulk2 %>%
   mutate(Group = 2)
 
-Bulk <- full_join(bulk1, bulk2, by=c("Old.Name","Blup_Transfo_time_serie_color_y1_y2_y3","Group"))
+Bulk <- full_join(bulk1, bulk2, by=c("Old.Name","Blup_Transfo_time_serie_color_y1","Group"))
 Bulk
 ```
 **vessel**
@@ -219,19 +219,19 @@ Alternative hypothesis: the data are not normally distributed
 use the functions with() and shapiro.test() to compute Shapiro-Wilk test for each group of samples.  
 ```{r}
 # Shapiro-Wilk normality test for Bulk1
-with(Bulk, shapiro.test(Blup_Transfo_time_serie_color_y1_y2_y3[Group == "1"]))
+with(Bulk, shapiro.test(Blup_Transfo_time_serie_color_y1[Group == "1"]))
 # Shapiro-Wilk normality test for Bulk2
-with(Bulk, shapiro.test(Blup_Transfo_time_serie_color_y1_y2_y3[Group == "2"])) 
+with(Bulk, shapiro.test(Blup_Transfo_time_serie_color_y1[Group == "2"])) 
 ```
 #### Do the two populations have the same variances? ####
 ```{r}
-res.ftest <- var.test(Blup_Transfo_time_serie_color_y1_y2_y3 ~ Group, data = Bulk)
+res.ftest <- var.test(Blup_Transfo_time_serie_color_y1 ~ Group, data = Bulk)
 res.ftest
 ```
 
 #### Compute unpaired two-samples t-test ####
 ```{r}
-res <- t.test(Blup_Transfo_time_serie_color_y1_y2_y3 ~ Group, data = Bulk, var.equal = TRUE)
+res <- t.test(Blup_Transfo_time_serie_color_y1 ~ Group, data = Bulk)
 res
 ```
 
