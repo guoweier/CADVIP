@@ -33,6 +33,14 @@ header.vessel <- header.vessel %>%
   unlist()
 ```
 
+**leaf headers**
+```{r}
+header.leaf <- readLines("../input/pheno_leaf_20220527.txt",n=1)
+header.leaf <- header.leaf %>%
+  str_split("\t") %>%
+  unlist()
+```
+
 **biomass data import**
 ```{r}
 pheno <- read_tsv("../input/pheno_output_table_blup_20220428.txt",col_names = header,comment = "Old")
@@ -44,6 +52,12 @@ pheno
 vessel <- read_csv("../input/pheno_vessel_20220522.csv",col_names = header.vessel,comment = "Geno")
 colnames(vessel) <- c("Old.Name","BLUP_tree_height","BLUP_mvd","BLUP_cmvd","BLUP_cvf","BLUP_vgi")
 vessel
+```
+
+**leaf data import**
+```{r}
+leaf <- read_tsv("../input/pheno_leaf_20220527.txt",col_names = header.leaf,comment = "Old")
+leaf
 ```
 
 **Cross Type**
@@ -70,6 +84,12 @@ vessel <- left_join(vessel,crosstype,by = "Old.Name")
 vessel
 ```
 
+**leaf**
+```{r}
+leaf <- left_join(leaf,crosstype, by="Old.Name")
+leaf
+```
+
 ### Remove IFG samples ###
 **biomass**
 ```{r}
@@ -77,11 +97,18 @@ pheno <- pheno %>%
   filter(CrossType == "GWR") 
 pheno
 ```
-**remove IFG genotypes in vessel dataset**
+**vessel**
 ```{r}
 vessel <- vessel %>%
   filter(CrossType == "GWR") 
 vessel
+```
+
+**leaf**
+```{r}
+leaf <- leaf %>%
+  filter(CrossType == "GWR") 
+leaf
 ```
 
 ### plot all phenotypes ###
@@ -101,6 +128,15 @@ pl <- ggplot(vessel,aes(x = vessel$BLUP_vgi)) +
   ggtitle(colnames(vessel$BLUP_vgi)) 
 pl
 ggsave("../output/VesselPheno5_20220522.png")
+```
+
+**plot pheno distribution in leaf dataset**
+```{r}
+pl <- ggplot(leaf,aes(x = Blup_Transfo_Indent_depth_mean_field_year2)) +
+  geom_histogram() +
+  ggtitle("Blup_Transfo_Indent_depth_mean_field_year2") 
+pl
+ggsave("../output/LeafPheno6_20220528.png")
 ```
 
 ### Sort phenotypes with less NA to more NA ###
@@ -132,20 +168,42 @@ vessel.sum
 ```
 _The results show no NA._
 
+**leaf**
+```{r}
+leaf.sum <- as.data.frame(matrix(header.leaf[-1], nrow = 91))
+data.n <- c()
+for (i in 2:92) {
+  noNA <- !is.na(leaf[[i]])
+  noNA <- noNA[noNA == TRUE]
+  data.n <- c(data.n, length(noNA))
+}
+leaf.sum <- cbind(leaf.sum,data.n) %>%
+  arrange(desc(data.n))
+leaf.sum
+```
+
 ### Check the maximum and minumn sample IDs in candidate phenotypes ###
 **biomass**
 ```{r}
 pheno <- pheno %>%
-  arrange(desc(Blup_Transfo_time_serie_color_y1)) %>%
-  select(Old.Name,Blup_Transfo_time_serie_color_y1, everything())
+  arrange(desc(Blup_Transfo_color_y1_y2_y3)) %>%
+  select(Old.Name,Blup_Transfo_color_y1_y2_y3, everything())
 pheno
 ```
 **vessel**
 ```{r}
 vessel <- vessel %>%
-  arrange(desc(BLUP_tree_height)) %>%
-  select(Old.Name,BLUP_tree_height, everything())
+  arrange(desc(BLUP_cmvd)) %>%
+  select(Old.Name,BLUP_cmvd, everything())
 vessel
+```
+
+**leaf**
+```{r}
+leaf <- leaf %>%
+  arrange(desc(Blup_Transfo_Indent_width_mean_field_year2)) %>%
+  select(Old.Name,Blup_Transfo_Indent_width_mean_field_year2, everything())
+leaf
 ```
 
 ### Establish bulked samples ###
@@ -153,18 +211,18 @@ vessel
 ```{r}
 pheno1 <- pheno
 bulk1 <- pheno1 %>%
-  filter(Old.Name == Old.Name[1:40]) %>%
-  select(Old.Name,Blup_Transfo_time_serie_color_y1)
+  filter(Old.Name == Old.Name[1:30]) %>%
+  select(Old.Name,Blup_Transfo_color_y1_y2_y3)
 bulk1
 ```
 
 ```{r}
 pheno2 <- pheno %>%
-  arrange(Blup_Transfo_time_serie_color_y1) 
+  arrange(Blup_Transfo_color_y1_y2_y3) 
 
 bulk2 <- pheno2 %>%
-  filter(Old.Name == Old.Name[1:40]) %>%
-  select(Old.Name, Blup_Transfo_time_serie_color_y1)
+  filter(Old.Name == Old.Name[1:30]) %>%
+  select(Old.Name, Blup_Transfo_color_y1_y2_y3)
 bulk2
 ```
 
@@ -173,18 +231,37 @@ bulk2
 vessel1 <- vessel
 bulk1_height <- vessel1 %>%
   filter(Old.Name == Old.Name[1:40]) %>%
-  select(Old.Name, BLUP_tree_height)
+  select(Old.Name, BLUP_cmvd)
 bulk1_height
 ```
 
 ```{r}
 vessel2 <- vessel %>%
-  arrange(BLUP_tree_height) 
+  arrange(BLUP_cmvd) 
 
 bulk2_height <- vessel2 %>%
   filter(Old.Name == Old.Name[1:40]) %>%
-  select(Old.Name, BLUP_tree_height)
+  select(Old.Name, BLUP_cmvd)
 bulk2_height
+```
+
+**leaf**
+```{r}
+leaf1 <- leaf
+bulk1.leaf <- leaf1 %>%
+  filter(Old.Name == Old.Name[1:40]) %>%
+  select(Old.Name,Blup_Transfo_Indent_width_mean_field_year2)
+bulk1.leaf
+```
+
+```{r}
+leaf2 <- leaf %>%
+  arrange(Blup_Transfo_Indent_width_mean_field_year2) 
+
+bulk2.leaf <- leaf2 %>%
+  filter(Old.Name == Old.Name[1:40]) %>%
+  select(Old.Name, Blup_Transfo_Indent_width_mean_field_year2)
+bulk2.leaf
 ```
 
 ### combine bulk1 and bulk2
@@ -196,7 +273,7 @@ bulk1 <- bulk1 %>%
 bulk2 <- bulk2 %>%
   mutate(Group = 2)
 
-Bulk <- full_join(bulk1, bulk2, by=c("Old.Name","Blup_Transfo_time_serie_color_y1","Group"))
+Bulk <- full_join(bulk1, bulk2, by=c("Old.Name","Blup_Transfo_color_y1_y2_y3","Group"))
 Bulk
 ```
 **vessel**
@@ -207,11 +284,32 @@ bulk1_height <- bulk1_height %>%
 bulk2_height <- bulk2_height %>%
   mutate(Group = 2)
 
-Bulk_height <- full_join(bulk1_height, bulk2_height,by=c("Old.Name","BLUP_tree_height","Group"))
-Bulk_height
+Bulk.vessel <- full_join(bulk1_height, bulk2_height,by=c("Old.Name","BLUP_cmvd","Group"))
+Bulk.vessel
+```
+
+**leaf**
+```{r}
+bulk1.leaf <- bulk1.leaf %>%
+  mutate(Group = 1)
+
+bulk2.leaf <- bulk2.leaf %>%
+  mutate(Group = 2)
+
+Bulk.leaf <- full_join(bulk1.leaf, bulk2.leaf, by=c("Old.Name","Blup_Transfo_Indent_width_mean_field_year2","Group"))
+Bulk.leaf
 ```
 
 ### Check bulk1 and bulk2 differences using t-test ###
+#### Mann Whitney U Test ####
+Nonparametric(distribution-free) test to compare outcomes between two independent groups  
+```{r}
+res <- wilcox.test(BLUP_cmvd~Group, data = Bulk.vessel)
+res
+```
+
+
+
 #### Are the data from each of the 2 groups follow a normal distribution? ####
 
 Null hypothesis: the data are normally distributed  
@@ -219,20 +317,60 @@ Alternative hypothesis: the data are not normally distributed
 use the functions with() and shapiro.test() to compute Shapiro-Wilk test for each group of samples.  
 ```{r}
 # Shapiro-Wilk normality test for Bulk1
-with(Bulk, shapiro.test(Blup_Transfo_time_serie_color_y1[Group == "1"]))
+with(Bulk.vessel, shapiro.test(BLUP_vgi[Group == "1"]))
 # Shapiro-Wilk normality test for Bulk2
-with(Bulk, shapiro.test(Blup_Transfo_time_serie_color_y1[Group == "2"])) 
+with(Bulk.vessel, shapiro.test(BLUP_vgi[Group == "2"])) 
 ```
 #### Do the two populations have the same variances? ####
 ```{r}
-res.ftest <- var.test(Blup_Transfo_time_serie_color_y1 ~ Group, data = Bulk)
+res.ftest <- var.test(BLUP_vgi ~ Group, data = Bulk.vessel)
 res.ftest
 ```
 
 #### Compute unpaired two-samples t-test ####
 ```{r}
-res <- t.test(Blup_Transfo_time_serie_color_y1 ~ Group, data = Bulk)
+res <- t.test(BLUP_vgi ~ Group, data = Bulk.vessel)
 res
+```
+### check samples relationship for candidate phenotypes ###
+#### Bulk samples import ####
+```{r}
+bulk.width <- read_csv("../output/bulk_indent_width_20220608.csv")
+bulk.depth <- read_csv("../output/bulk_indent_depth_20220608.csv")
+bulk.color <- read_csv("../output/bulk_color_20220608.csv")
+bulk.mvd <- read_csv("../output/bulk_mvd_20220608.csv")
+```
+
+#### import field name and seq name file ####
+```{r}
+old.seq.name <- read_tsv("../output/old_name_unique.txt")
+old.seq.name
+```
+
+#### add seq names to bulk samples ####
+```{r}
+bulk.color.seq <- left_join(bulk.color, old.seq.name, by=c("Sample"="Old.Name"))
+bulk.color.seq
+write.csv(bulk.color.seq, "../output/bulk_color_seq_20220608.csv")
+```
+
+```{r}
+bulk.depth.seq <- left_join(bulk.depth, old.seq.name, by=c("Sample"="Old.Name"))
+bulk.depth.seq
+write.csv(bulk.depth.seq, "../output/bulk_indent_depth_seq_20220608.csv")
+```
+
+```{r}
+bulk.mvd.seq <- left_join(bulk.mvd, old.seq.name, by=c("Sample"="Old.Name"))
+bulk.mvd.seq
+write.csv(bulk.mvd.seq, "../output/bulk_mvd_seq_20220608.csv")
+```
+
+#### compare samples between phenotypes ####
+```{r}
+bulk.w.d <- inner_join(bulk.width, bulk.depth, by="Sample")
+bulk.w.m <- inner_join(bulk.width, bulk.mvd, by="Sample")
+bulk.w.d
 ```
 
 
