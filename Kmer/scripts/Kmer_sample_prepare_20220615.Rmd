@@ -1,0 +1,84 @@
+---
+title: "Kmer_sample_prepare"
+author: "Weier Guo"
+date: "6/15/2022"
+output: html_document
+---
+
+## Introduction ##
+After selecting 3 phenotypes - Leaf_indent_width, Leaf_indent_depth, mean vessel diameter (mvd) - for K-mer analysis, we generate 80 samples for each phenotype (40 bulk1 + 40 bulk2).  
+After discussion with Isabelle, we decide to collect 38 samples for each bulk (because some samples are missing in the freezer).  
+Add freezer Plate, Plate well, and dilution info for every sample.  
+Build a bulk table for pooling samples for re-sequencing.  
+
+## Working Processes ##
+### import library ###
+```{r}
+library(tidyverse)
+```
+
+### import datasets ###
+```{r}
+samples <- read_csv("../output/Unique_wdm_samples_20220615.csv")
+plate <- read_csv("../input/Seq_plate_info_20220615.csv")
+dilute <- read_csv("../input/Plate_dilution_info_20220615.csv")
+samples
+plate
+dilute
+```
+
+### Add Plate name into sample file ###
+```{r}
+samples.plate <- samples %>%
+  filter(is.na(Seq.Name1) == FALSE) %>%
+  mutate(Plate1 = str_replace(string = Seq.Name1, pattern = "(.*)_(.*)", replacement = "\\1"))
+samples.plate$Plate2 = NA
+samples.plate$Plate3 = NA
+for (i in 1:length(samples.plate$Number)) {
+  if (is.na(samples.plate$Seq.Name2[i]) == FALSE) {
+    samples.plate$Plate2[i] = str_replace(samples.plate$Seq.Name2[i], "(.*)_(.*)", "\\1")
+  }
+  if (is.na(samples.plate$Seq.Name3[i]) == FALSE) {
+    samples.plate$Plate3[i] = str_replace(samples.plate$Seq.Name3[i], "(.*)_(.*)", "\\1")
+  }
+}
+samples.plate
+```
+
+### add plate well ###
+```{r}
+samples.plate.well <- left_join(samples.plate, plate, by = c("Seq.Name1"="Seq.Name"))
+samples.plate.well <- left_join(samples.plate.well, plate, by = c("Seq.Name2"="Seq.Name"))
+samples.plate.well <- left_join(samples.plate.well, plate, by = c("Seq.Name3"="Seq.Name"))
+samples.plate.well <- samples.plate.well %>%
+  mutate(Old.Name = Old.Name.x, Plate.Well1 = Plate.Well.x, Plate.Well2 = Plate.Well.y, Plate.Well3 = Plate.Well) %>%
+  select(Number,Old.Name, Group.width, Group.depth, Group.mvd, Seq.Name1, Plate1, Plate.Well1, Seq.Name2, Plate2, Plate.Well2, Seq.Name3, Plate3, Plate.Well3)
+
+samples.plate.well
+```
+
+### add dilution info ###
+```{r}
+#edit dilute data
+dilu <- dilute %>%
+  mutate(Dilution.lib.H2O = `Dilution (lib+H2O)`) %>%
+  select(Libs, Dilution.lib.H2O)
+dilu
+
+#add dilution info into dataset and clean up
+samples.plate.well.dilu <- left_join(samples.plate.well, dilu, by = c("Plate1"="Libs"))
+samples.plate.well.dilu <- left_join(samples.plate.well.dilu, dilu, by = c("Plate2"="Libs"))
+samples.plate.well.dilu <- left_join(samples.plate.well.dilu, dilu, by = c("Plate3"="Libs"))
+samples.plate.well.dilu <- samples.plate.well.dilu %>%
+  mutate(Dilu.lib.H2O1 = Dilution.lib.H2O.x, Dilu.lib.H2O2 = Dilution.lib.H2O.y, Dilu.lib.H2O3 = Dilution.lib.H2O) %>%
+  select(Old.Name, Group.width, Group.depth, Group.mvd, Seq.Name1, Plate1, Plate.Well1, Dilu.lib.H2O1, Seq.Name2, Plate2, Plate.Well2, Dilu.lib.H2O2, Seq.Name3, Plate3, Plate.Well3, Dilu.lib.H2O3)
+samples.plate.well.dilu
+```
+
+## Ouput ##
+```{r}
+write.csv(samples.plate.well.dilu, "../output/Samples_prepare_pool_20220615.csv")
+```
+
+
+

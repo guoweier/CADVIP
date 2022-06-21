@@ -201,8 +201,8 @@ vessel
 **leaf**
 ```{r}
 leaf <- leaf %>%
-  arrange(desc(Blup_Transfo_Indent_width_mean_field_year2)) %>%
-  select(Old.Name,Blup_Transfo_Indent_width_mean_field_year2, everything())
+  arrange(desc(Blup_Transfo_Indent_depth_mean_field_year2)) %>%
+  select(Old.Name,Blup_Transfo_Indent_depth_mean_field_year2, everything())
 leaf
 ```
 
@@ -250,17 +250,17 @@ bulk2_height
 leaf1 <- leaf
 bulk1.leaf <- leaf1 %>%
   filter(Old.Name == Old.Name[1:40]) %>%
-  select(Old.Name,Blup_Transfo_Indent_width_mean_field_year2)
+  select(Old.Name,Blup_Transfo_Indent_depth_mean_field_year2)
 bulk1.leaf
 ```
 
 ```{r}
 leaf2 <- leaf %>%
-  arrange(Blup_Transfo_Indent_width_mean_field_year2) 
+  arrange(Blup_Transfo_Indent_depth_mean_field_year2) 
 
 bulk2.leaf <- leaf2 %>%
-  filter(Old.Name == Old.Name[1:40]) %>%
-  select(Old.Name, Blup_Transfo_Indent_width_mean_field_year2)
+  filter(Old.Name == Old.Name[1:41]) %>%
+  select(Old.Name, Blup_Transfo_Indent_depth_mean_field_year2)
 bulk2.leaf
 ```
 
@@ -351,26 +351,40 @@ old.seq.name
 ```{r}
 bulk.color.seq <- left_join(bulk.color, old.seq.name, by=c("Sample"="Old.Name"))
 bulk.color.seq
-write.csv(bulk.color.seq, "../output/bulk_color_seq_20220608.csv")
+#write.csv(bulk.color.seq, "../output/bulk_color_seq_20220608.csv")
+```
+
+```{r}
+bulk.width.seq <- left_join(bulk.width, old.seq.name, by=c("Sample"="Old.Name"))
+bulk.width.seq
+#write.csv(bulk.depth.seq, "../output/bulk_indent_depth_seq_20220608.csv")
 ```
 
 ```{r}
 bulk.depth.seq <- left_join(bulk.depth, old.seq.name, by=c("Sample"="Old.Name"))
 bulk.depth.seq
-write.csv(bulk.depth.seq, "../output/bulk_indent_depth_seq_20220608.csv")
+#write.csv(bulk.depth.seq, "../output/bulk_indent_depth_seq_20220608.csv")
 ```
 
 ```{r}
 bulk.mvd.seq <- left_join(bulk.mvd, old.seq.name, by=c("Sample"="Old.Name"))
 bulk.mvd.seq
-write.csv(bulk.mvd.seq, "../output/bulk_mvd_seq_20220608.csv")
+#write.csv(bulk.mvd.seq, "../output/bulk_mvd_seq_20220608.csv")
 ```
 
 #### compare samples between phenotypes ####
 ```{r}
-bulk.w.d <- inner_join(bulk.width, bulk.depth, by="Sample")
-bulk.w.m <- inner_join(bulk.width, bulk.mvd, by="Sample")
-bulk.w.d
+bulk.w.d <- full_join(bulk.width, bulk.depth, by="Sample")
+bulk.w.d.m <- full_join(bulk.w.d, bulk.mvd, by="Sample")
+bulk.unique <- bulk.w.d.m %>%
+  mutate(Group.width = Group.x, Group.depth = Group.y, Group.mvd = Group) %>%
+  select(Sample, Group.width, Group.depth, Group.mvd)
+bulk.unique.seq <- left_join(bulk.unique, old.seq.name, by = c("Sample"="Old.Name"))
+bulk.unique.seq
+write.csv(bulk.unique.seq, "../output/Unique_wdm_samples_20220615.csv")
+#write.csv(bulk.w.d, "../output/width_vs_depth_samples_20220615.csv")
+#write.csv(bulk.w.m, "../output/width_vs_mvd_samples_20220615.csv")
+#write.csv(bulk.d.m, "../output/depth_vs_mvd_samples_20220615.csv")
 ```
 
 
