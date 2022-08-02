@@ -80,5 +80,44 @@ samples.plate.well.dilu
 write.csv(samples.plate.well.dilu, "../output/Samples_prepare_pool_20220615.csv")
 ```
 
+## add barcodes ##
+### load resequence files ###
+```{r}
+seq.samples <- read_csv("../input/Samples_reseq_20220621.csv")
+seq.samples <- seq.samples %>%
+  select(Old.Name, Group.width, Group.depth, Group.mvd, Seq.Name1, Plate1, Plate.Well1)
+seq.samples
+```
+
+### import index file ###
+```{r}
+barcode <- read_csv("../input/pop25_31_barcodes_20220621.csv")
+barcode
+```
+
+### join two files ###
+```{r}
+samples.barcode <- left_join(seq.samples, barcode, by=c("Seq.Name1"="Library")) 
+samples.barcode <- samples.barcode %>%
+  select(Old.Name, Group.width, Group.depth, Group.mvd, Seq.Name1, Plate1, Plate.Well1, `Index 1 / Barcode 1 #`, `Index 2 / Barcode 2 #`, `Barcode / Index 1 seq`, `Index 2 seq`)
+samples.barcode
+```
+
+### check uniqueness of barcodes ###
+```{r}
+all.index <- c()
+for (i in 1:171) {
+  i1 <- as.character(samples.barcode$`Index 1 / Barcode 1 #`[i])
+  i2 <- as.character(samples.barcode$`Index 2 / Barcode 2 #`[i])
+  i12 <- paste(i1,i2,sep = "_")
+  all.index <- c(all.index, i12)
+}
+length(unique(all.index))
+```
+
+### output file with index and barcode ###
+```{r}
+write_csv(samples.barcode, "../output/Samples_barcoded_20220621.csv")
+```
 
 

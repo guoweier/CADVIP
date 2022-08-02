@@ -193,8 +193,8 @@ pheno
 **vessel**
 ```{r}
 vessel <- vessel %>%
-  arrange(desc(BLUP_cmvd)) %>%
-  select(Old.Name,BLUP_cmvd, everything())
+  arrange(desc(BLUP_mvd)) %>%
+  select(Old.Name,BLUP_mvd, everything())
 vessel
 ```
 
