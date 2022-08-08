@@ -1,0 +1,41 @@
+---
+title: "combined_QTL"
+author: "Weier Guo"
+date: '2022-08-08'
+output: html_document
+---
+
+### Introduction ###
+This script aims for QTL analysis based on three genotype dataset: P.nigra SNPs, P.deltoides SNPs, relative dosage.
+It is not a conventional QTL, so we have to run analysis based on customized model. 
+Model:
+**Phenotype ~ intercept + dosage_genotype + P.deltoides_genotype + P.nigra_genotype**
+It can be started with: 
+**Y ~ beta0 + beta1*gtDeltoides + beta2*gtNigra*Dosage + e**
+**gtDeltoides: (-1,1)**
+**gtNigra: (-1,1)**
+**Dosage: (0,1,2...) represents (deletion, normal, duplication, ...)**
+Later, it can add on other variables including interactions.
+
+### load library and data ###
+library
+```{r}
+library(tidyverse)
+library(qqman)
+library(ggplot2)
+```
+
+dataset
+```{r}
+nigra_gt <- read_tsv("../output/Pnigra_NewOrderGeno_pos_20220808.txt")
+deltoides_gt <- read_tsv("../output/Pdeltoides_nigraMarker_20220801.txt")
+dosage_gt <- read_tsv("../output/Dosage_nigraMarker_20220808.txt")
+nigra_gt
+deltoides_gt
+dosage_gt
+```
+
+
+
+
+
