@@ -12,7 +12,7 @@ import numpy as np
 usage = ""
 parser = OptionParser(usage=usage)
 parser.add_option("-f", "--input", dest="f", help="Input fq file.")
-parser.add_option("-l", "--ori_line", dest="l", type="int", help="Input original liens.")
+parser.add_option("-l", "--ori_line", dest="l", type="int", help="Input original lines.")
 parser.add_option("-r", "--remained", dest="r", type="int", help="Input intended remained lines.")
 parser.add_option("-o", "--output", dest="o", help="Output file.")
 
