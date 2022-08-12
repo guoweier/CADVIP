@@ -27,6 +27,7 @@ library(ggplot2)
 
 dataset
 ```{r}
+# genotypes
 nigra_gt <- read_tsv("../output/Pnigra_NewOrderGeno_pos_20220808.txt")
 deltoides_gt <- read_tsv("../output/Pdeltoides_nigraMarker_20220801.txt")
 dosage_gt <- read_tsv("../output/Dosage_nigraMarker_20220808.txt")
@@ -36,6 +37,22 @@ dosage_gt
 ```
 
 
+```{r}
+# phenotypes
+biomass <- read_tsv("../../Kmer/input/pheno_output_table_blup_20220428.txt")
+leaf <- read_tsv("../../Kmer/input/pheno_leaf_20220527.txt")
+vessel <- read_csv("../../Kmer/input/pheno_vessel_20220522.csv")
+biomass
+leaf
+vessel
+```
+
+### Convert P.nigra and P.deltoides genotypes to (-1,1) ###
+```{r}
+nigra_gt_cv <- nigra_gt %>%
+  select(-Old.Name) %>%
+  str_replace(string = "1", pattern = )
+```
 
 
 
