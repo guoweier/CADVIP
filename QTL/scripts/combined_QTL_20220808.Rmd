@@ -47,12 +47,7 @@ leaf
 vessel
 ```
 
-### Convert P.nigra and P.deltoides genotypes to (-1,1) ###
-```{r}
-nigra_gt_cv <- nigra_gt %>%
-  select(-Old.Name) %>%
-  str_replace(string = "1", pattern = )
-```
+
 
 
 
