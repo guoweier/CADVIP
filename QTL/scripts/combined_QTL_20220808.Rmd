@@ -28,9 +28,9 @@ library(ggplot2)
 dataset
 ```{r}
 # genotypes
-nigra_gt <- read_tsv("../output/Pnigra_NewOrderGeno_pos_20220808.txt")
-deltoides_gt <- read_tsv("../output/Pdeltoides_nigraMarker_20220801.txt")
-dosage_gt <- read_tsv("../output/Dosage_nigraMarker_20220808.txt")
+nigra_gt <- read_tsv("../output/Pnigra_NewOrderGeno_pos_20220812.txt")
+deltoides_gt <- read_tsv("../output/Pdeltoides_nigraMarker_20220812.txt")
+dosage_gt <- read_tsv("../output/Dosage_nigraMarker_20220812.txt")
 nigra_gt
 deltoides_gt
 dosage_gt
@@ -47,7 +47,224 @@ leaf
 vessel
 ```
 
+### dataset preparation ###
+#### Replace deleted segments (NAs) in Pnigra genotype into 0 ####
+This step is to set a tractable number for deleted segments in Pnigra, which can be easy handling in the statistical model. 
+1. Locate the deleted segments in dosage_gt
+```{r}
+dosage_gt_matrix <- as.matrix(dosage_gt)
+del_seg <- which(dosage_gt_matrix == "0",arr.ind = TRUE)
+```
+
+2. Transfer Pnigra genotype into matrix, prepare for replacement
+```{r}
+nigra_gt_matrix <- as.matrix(nigra_gt)
+```
+
+3. Based on del_seg, replace NAs in nigra_gt_matrix into 0.
+```{r}
+for (i in 1:nrow(del_seg)) {
+  row <- del_seg[i,1]
+  col <- del_seg[i,2]
+  nigra_gt_matrix[row,col] <- "0"
+}
+```
+
+4. Transform nigra_gt_matrix back to tibble
+```{r}
+nigra_gt_new <- as.data.frame(nigra_gt_matrix)
+dat <- nigra_gt_new %>%
+  select(-Old.Name) 
+dat <- as.data.frame(sapply(dat, as.numeric))
+nigra_gt_n <- dat %>%
+  mutate(Old.Name = nigra_gt_new[,1]) %>%
+  select(Old.Name, everything())
+nigra_gt_n <- tibble(nigra_gt_n)
+head(nigra_gt_n)
+```
+
+### combine genotypes and phenotypes into one bulk file ###
+1. Modify each genotype marker name, prepare for distinguishing after merge the tables.
+```{r}
+# P.deltoides
+newcolname <- c("Old.Name")
+for (i in 2:ncol(deltoides_gt)) {
+  newmarker <- paste(colnames(deltoides_gt)[i],"D",sep = "_")
+  newcolname <- c(newcolname,newmarker)
+}
+deltoides.gt <- deltoides_gt
+colnames(deltoides.gt) <- newcolname
+head(deltoides.gt)
+```
+
+```{r}
+# P.nigra
+newcolname <- c("Old.Name")
+for (i in 2:ncol(nigra_gt_n)) {
+  newmarker <- paste(colnames(nigra_gt_n)[i],"N",sep = "_")
+  newcolname <- c(newcolname,newmarker)
+}
+nigra.gt <- nigra_gt_n 
+colnames(nigra.gt) <- newcolname
+head(nigra.gt)
+```
+
+```{r}
+# Dosage
+newcolname <- c("Old.Name")
+for (i in 2:ncol(dosage_gt)) {
+  newmarker <- paste(colnames(dosage_gt)[i],"I",sep = "_")
+  newcolname <- c(newcolname,newmarker)
+}
+dosage.gt <- dosage_gt
+colnames(dosage.gt) <- newcolname
+head(dosage.gt)
+```
+2. Combine three genotypes
+```{r}
+Del.Nig.Dos.geno <- deltoides.gt[,1]
+for (i in 2:ncol(deltoides.gt)) {
+  marker <- cbind(deltoides.gt[,i],nigra.gt[,i],dosage.gt[,i])
+  Del.Nig.Dos.geno <- cbind(Del.Nig.Dos.geno, marker)
+}
+head(Del.Nig.Dos.geno)
+```
+
+3. add phenotypes
+```{r}
+leaf.Del.Nig.Dos <- left_join(Del.Nig.Dos.geno,leaf,by = "Old.Name") 
+leaf.Del.Nig.Dos
+```
+
+### create linear model ###
+1. load library
+```{r}
+library(lmerTest)
+```
+
+2. pickup the target phenotype
+```{r}
+leaf.Del.Nig.Dos <- leaf.Del.Nig.Dos %>%
+  select(Old.Name, Blup_Transfo_PC3_PC4_year2, everything())
+leaf.Del.Nig.Dos
+```
+
+3. Recurrently run linear model for each marker
+```{r}
+summary(lm(Blup_Transfo_Num_Indents_field_year2 ~ Chr01_126238_809425_D + Chr01_126238_809425_N * Chr01_126238_809425_I, data = leaf.Del.Nig.Dos))
+```
 
 
+```{r,eval=FALSE}
+geno <- seq(3,1418,3)
+model.pvalue.add <- tibble(Marker = c("Test"), 
+                       Intercept = c(123), 
+                       Deltoides = c(123), 
+                       Nigra = c(123), 
+                       Dosage = c(123), 
+                       Nigra_Dosage = c(123))
+
+for (i in geno) {
+  m <- summary(lm(Blup_Transfo_PC3_PC4_year2 ~ leaf.Del.Nig.Dos[,i] + leaf.Del.Nig.Dos[,i+1] * leaf.Del.Nig.Dos[,i+2], data = leaf.Del.Nig.Dos))
+  pvalue <- m$coefficients[,4]
+  if (length(pvalue) < 5) {
+    diff <- 5 - length(pvalue)
+    for (j in 1:diff) {
+      pvalue <- c(pvalue,"NA")
+    }
+  }
+  P.value <- c(colnames(deltoides_gt)[i/3+1],pvalue)
+  model.pvalue.add <- rbind(model.pvalue.add,P.value)
+}
+model.pvalue.add <- model.pvalue.add %>% 
+  filter(Marker != "Test")
+model.pvalue.add
+```
+
+### Select significant rows (pvalue < 0.05) ###
+```{r,eval=FALSE}
+# P.deltoides
+del.sig <- model.pvalue %>%
+  filter(Deltoides < 0.05) %>%
+  mutate(Phenotype = "Num_Indent_y2") %>%
+  select(Phenotype, everything())
+del.sig
+```
+
+```{r,eval=FALSE}
+# P.nigra
+nig.sig <- model.pvalue %>%
+  filter(Nigra < 0.05) %>%
+  mutate(Phenotype = "Num_Indent_y2") %>%
+  select(Phenotype, everything())
+nig.sig
+```
+
+```{r,eval=FALSE}
+# Dosage
+dos.sig <- model.pvalue %>%
+  filter(Dosage < 0.05) %>%
+  mutate(Phenotype = "Num_Indent_y2") %>%
+  select(Phenotype, everything())
+dos.sig
+```
+
+```{r,eval=FALSE}
+# Nigra*Dosage
+nig.dos.sig <- model.pvalue %>%
+  filter(Nigra_Dosage < 0.05) %>%
+  mutate(Phenotype = "Num_Indent_y2") %>%
+  select(Phenotype, everything())
+nig.dos.sig
+```
+
+### merge phenotypes pvalue tables ###
+```{r,eval=FALSE}
+# P.deltoides
+del.sig.add <- model.pvalue.add %>%
+  filter(Deltoides < 0.05) %>%
+  mutate(Phenotype = "PC3_PC4_y2") %>%
+  select(Phenotype, everything())
+del.sig <- rbind(del.sig, del.sig.add)
+del.sig
+```
+
+```{r,eval=FALSE}
+# P.nigra
+nig.sig.add <- model.pvalue.add %>%
+  filter(Nigra < 0.05) %>%
+  mutate(Phenotype = "PC3_PC4_y2") %>%
+  select(Phenotype, everything())
+nig.sig <- rbind(nig.sig, nig.sig.add)
+nig.sig
+```
+
+```{r,eval=FALSE}
+# Dosage
+dos.sig.add <- model.pvalue.add %>%
+  filter(Dosage < 0.05) %>%
+  mutate(Phenotype = "PC3_PC4_y2") %>%
+  select(Phenotype, everything())
+dos.sig <- rbind(dos.sig, dos.sig.add)
+dos.sig
+```
+
+```{r,eval=FALSE}
+# P.nigra*Dosage
+nig.dos.sig.add <- model.pvalue.add %>%
+  filter(Nigra_Dosage < 0.05) %>%
+  mutate(Phenotype = "PC3_PC4_y2") %>%
+  select(Phenotype, everything())
+nig.dos.sig <- rbind(nig.dos.sig, nig.dos.sig.add)
+nig.dos.sig
+```
+
+### output pvalue tables ###
+```{r,eval=FALSE}
+write_csv(del.sig, "../output/Leaf_deltoides_pvalue_20220822.csv")
+write_csv(nig.sig, "../output/Leaf_nigra_pvalue_20220822.csv")
+write_csv(dos.sig, "../output/Leaf_dosage_pvalue_20220822.csv")
+write_csv(nig.dos.sig, "../output/Leaf_nigdos_pvalue_20220822.csv")
+```
 
 
