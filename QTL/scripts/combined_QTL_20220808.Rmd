@@ -28,9 +28,9 @@ library(ggplot2)
 dataset
 ```{r}
 # genotypes
-nigra_gt <- read_tsv("../output/Pnigra_NewOrderGeno_pos_20220812.txt")
-deltoides_gt <- read_tsv("../output/Pdeltoides_nigraMarker_20220812.txt")
-dosage_gt <- read_tsv("../output/Dosage_nigraMarker_20220812.txt")
+nigra_gt <- read_tsv("../output/Pnigra_genome_marker_20220825.txt")
+deltoides_gt <- read_tsv("../output/Pdeltoides_nigraMarker_20220825.txt")
+dosage_gt <- read_tsv("../output/Dosage_nigraMarker_20220825.txt")
 nigra_gt
 deltoides_gt
 dosage_gt
@@ -175,10 +175,10 @@ summary(lm(Blup_Transfo_Num_Indents_field_year2 ~ Chr01_126238_809425_D + Chr01_
 
 
 ```{r}
-for (j in 1418:length(leaf.Del.Nig.Dos)) {
+for (j in 2891:length(leaf.Del.Nig.Dos)) {
   Pheno <- leaf.Del.Nig.Dos[,j]
   pheno.name <- colnames(leaf.Del.Nig.Dos)[j]
-  geno <- seq(2,1417,3)
+  geno <- seq(2,2890,3)
   model.pvalue <- tibble(Marker = c("Test"), 
                         Intercept = c(123), 
                         Deltoides = c(123), 
@@ -208,13 +208,16 @@ for (j in 1418:length(leaf.Del.Nig.Dos)) {
     mutate(CHR = as.numeric(str_replace(string = Marker, pattern = "(...)(..)_(.*)_(.*)",replacement = "\\2"))) %>%
     mutate(BP = as.numeric(str_replace(string = Marker, pattern = "(...)(..)_(.*)_(.*)", replacement = "\\3")))
   
+  # save pvalue file
+  write_csv(model.pvalue, paste("../Pvalue_Leaf/", pheno.name, ".csv", sep = ""))
+  
   # Manhattan plot for four variables
   # Deltoides
   Del.man <- model.pvalue %>%
     select(Marker, CHR, BP, Del_P_adj) %>%
     filter(Del_P_adj != "NA")
   manhattan(Del.man, snp = "Marker", p = "Del_P_adj", suggestiveline = -log10(0.05), genomewideline =-log10(0.1), main = paste("Manhattan_Deltoides", pheno.name, sep = "_"))
-  dev.copy(png, paste("Manhattan_Deltoides_", pheno.name, ".png", sep = ""), width = 500, height = 300)
+  dev.copy(png, paste("../Manhattan_Leaf/Manhattan_Deltoides_", pheno.name, ".png", sep = ""), width = 500, height = 300)
   dev.off()
   # Nigra
   Nig.man <- model.pvalue %>%

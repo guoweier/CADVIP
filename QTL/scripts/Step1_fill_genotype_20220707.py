@@ -43,8 +43,8 @@ def knit_lists(a,b):
 def get_allele(a,b):
 	if a == b:
 		new = str(a) 
-	elif a == "N" or b == "N":
-		new = "N"
+	elif a == "NA" or b == "NA":
+		new = "NA"
 	else:
 		new = "1.5"
 	return new

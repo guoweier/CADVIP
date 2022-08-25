@@ -23,10 +23,9 @@ New_markers = {}
 
 
 # read standard marker file head
-s_mhead = s.readline()
 s_head = s.readline()
 s_head = s_head.split("\n")[0]
-s_hd = s_head.split(",")[1:]
+s_hd = s_head.split("\t")[1:]
 
 # read genome marker file head
 g_head = g.readline()
@@ -54,7 +53,7 @@ for i in range(len(s_hd)):
 			if s_end >= g_start and s_end <= g_end:
 				New_markers[i] += [j]		# add marker end position
 				break 		# stop the current loop
-
+				
 	# arrange marker positions
 	if New_markers[i][0] == New_markers[i][1]:
 		New_markers[i] = [New_markers[i][0]]			# if start and end in the same genome marker, get only one marker position
@@ -80,8 +79,8 @@ for line in g:
 		alleles = []
 		for i in New_markers[key]:
 			alleles.append(ln[i])
-		if "N" in alleles:
-			allele = "N"
+		if "NA" in alleles:
+			allele = "NA"
 		else:
 			Alleles = list(map(lambda x: round(float(x),1), alleles))
 			allele = round(statistics.mean(Alleles),2)
