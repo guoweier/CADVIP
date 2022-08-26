@@ -1,0 +1,135 @@
+---
+title: "QTL_selection"
+author: "Weier Guo"
+date: '2022-08-26'
+output: html_document
+---
+
+### Introduction ###
+This Notebook is to select QTLs from the Pvalue datasets from [combined QTL]("https://github.com/guoweier/CADVIP/blob/main/QTL/scripts/combined_QTL_20220808.Rmd"). 
+
+Selection criteria:
+- 0.05 < p-value < 0.1: suggestive linkage
+- 0.01 < p-value < 0.05: significant linkage
+- p-value < 0.01: confirmed linkage
+
+### import package and datasets ###
+#### package ####
+```{r}
+library(tidyverse)
+```
+
+#### datasets prepared ####
+```{r}
+p.files <- tibble(filename = list.files("../Pvalue_Leaf/"))
+p.files.paths <- p.files %>%
+  mutate(filepath = paste("../Pvalue_Leaf/", filename, sep = "")) %>%
+  mutate(phenotype = str_replace(string = filename, pattern = "(.*).csv", replacement = "\\1"))
+head(p.files.paths)
+```
+
+### Recurrently load files and do selection ###
+```{r}
+Linkage.define <- function(pvalue) {
+  if (pvalue <= 0.1 & pvalue >= 0.05) {
+    "suggestive"
+  }
+  else if (pvalue < 0.05 & pvalue >= 0.01) {
+    "significant"
+  }
+  else if (pvalue < 0.01) {
+    "confirmed"
+  }
+}
+```
+
+
+
+```{r}
+Del.QTLs <- tibble(Pheno = c("Test"),
+                   Marker = c("Test"),
+                   Del_P_adj = c(123))
+Nig.QTLs <- tibble(Pheno = c("Test"),
+                   Marker = c("Test"),
+                   Nig_P_adj = c(123))
+Dos.QTLs <- tibble(Pheno = c("Test"),
+                   Marker = c("Test"),
+                   Dos_P_adj = c(123))
+Nig.Dos.QTLs <- tibble(Pheno = c("Test"),
+                   Marker = c("Test"),
+                   NigDos_P_adj = c(123))
+for (i in 1:length(p.files.paths$filename)) {
+  p.file <- read_csv(p.files.paths$filepath[i])
+  # P.deltoides
+  Dels <- p.file %>%
+    filter(Del_P_adj != "NA" & Del_P_adj <= 0.1) %>%
+    mutate(Pheno = p.files.paths$phenotype[i]) %>%
+    select(Pheno, Marker, Del_P_adj)
+  Del.QTLs <- rbind(Del.QTLs,Dels)
+  # P. nigra
+  Nigs <- p.file %>%
+    filter(Nig_P_adj != "NA" & Nig_P_adj <= 0.1) %>%
+    mutate(Pheno = p.files.paths$phenotype[i]) %>%
+    select(Pheno, Marker, Nig_P_adj)
+  Nig.QTLs <- rbind(Nig.QTLs,Nigs)
+  # Dosage
+  Doss <- p.file %>%
+    filter(Dos_P_adj != "NA" & Dos_P_adj <= 0.1) %>%
+    mutate(Pheno = p.files.paths$phenotype[i]) %>%
+    select(Pheno, Marker, Dos_P_adj)
+  Dos.QTLs <- rbind(Dos.QTLs,Doss)
+  # Dosage
+  NigDoss <- p.file %>%
+    filter(NigDos_P_adj != "NA" & NigDos_P_adj <= 0.1) %>%
+    mutate(Pheno = p.files.paths$phenotype[i]) %>%
+    select(Pheno, Marker, NigDos_P_adj)
+  Nig.Dos.QTLs <- rbind(Nig.Dos.QTLs,NigDoss)
+}
+```
+
+
+### adjust QTLs ###
+#### P. deltoides ####
+```{r}
+Del.QTLs.adj <- Del.QTLs %>%
+  filter(Pheno != "Test") %>%
+  rowwise() %>%
+  mutate(Linkage_Class = Linkage.define(Del_P_adj))
+Del.QTLs.adj
+```
+
+#### P. nigra ####
+```{r}
+Nig.QTLs.adj <- Nig.QTLs %>%
+  filter(Pheno != "Test") %>%
+  rowwise() %>%
+  mutate(Linkage_Class = Linkage.define(Nig_P_adj))
+Nig.QTLs.adj
+```
+
+#### Dosage ####
+```{r}
+Dos.QTLs.adj <- Dos.QTLs %>%
+  filter(Pheno != "Test") %>%
+  rowwise() %>%
+  mutate(Linkage_Class = Linkage.define(Dos_P_adj))
+Dos.QTLs.adj
+```
+
+#### Dosage ####
+```{r}
+Nig.Dos.QTLs.adj <- Nig.Dos.QTLs %>%
+  filter(Pheno != "Test") %>%
+  rowwise() %>%
+  mutate(Linkage_Class = Linkage.define(NigDos_P_adj))
+Nig.Dos.QTLs.adj
+```
+
+### export files ###
+```{r}
+write_csv(Del.QTLs.adj, "../Pdeltoides_QTL_lm_20220826.csv")
+write_csv(Nig.QTLs.adj, "../Pnigra_QTL_lm_20220826.csv")
+write_csv(Dos.QTLs.adj, "../Ddosage_QTL_lm_20220826.csv")
+write_csv(Nig.Dos.QTLs.adj, "../PnigraDosage_QTL_lm_20220826.csv")
+```
+
