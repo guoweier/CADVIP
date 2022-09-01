@@ -21,9 +21,9 @@ library(tidyverse)
 
 #### datasets prepared ####
 ```{r}
-p.files <- tibble(filename = list.files("../Pvalue_Leaf/"))
+p.files <- tibble(filename = list.files("../Pvalue_Leaf_lmer/"))
 p.files.paths <- p.files %>%
-  mutate(filepath = paste("../Pvalue_Leaf/", filename, sep = "")) %>%
+  mutate(filepath = paste("../Pvalue_Leaf_lmer/", filename, sep = "")) %>%
   mutate(phenotype = str_replace(string = filename, pattern = "(.*).csv", replacement = "\\1"))
 head(p.files.paths)
 ```
@@ -132,4 +132,129 @@ write_csv(Nig.QTLs.adj, "../Pnigra_QTL_lm_20220826.csv")
 write_csv(Dos.QTLs.adj, "../Ddosage_QTL_lm_20220826.csv")
 write_csv(Nig.Dos.QTLs.adj, "../PnigraDosage_QTL_lm_20220826.csv")
 ```
+
+
+
+
+### Dosage embeded into Nigra genotyp ###
+#### datasets prepared ####
+```{r}
+p.files <- tibble(filename = list.files("../Pvalue_Leaf_DelNig/"))
+p.files.paths <- p.files %>%
+  mutate(filepath = paste("../Pvalue_Leaf_DelNig/", filename, sep = "")) %>%
+  mutate(phenotype = str_replace(string = filename, pattern = "(.*).csv", replacement = "\\1"))
+head(p.files.paths)
+```
+
+#### adjust dataset ####
+```{r}
+Del.QTLs <- tibble(Pheno = c("Test"),
+                   Marker = c("Test"),
+                   Del_P_adj = c(123))
+Nig.QTLs <- tibble(Pheno = c("Test"),
+                   Marker = c("Test"),
+                   Nig_P_adj = c(123))
+for (i in 1:length(p.files.paths$filename)) {
+  p.file <- read_csv(p.files.paths$filepath[i])
+  # P.deltoides
+  Dels <- p.file %>%
+    filter(Del_P_adj != "NA" & Del_P_adj <= 0.1) %>%
+    mutate(Pheno = p.files.paths$phenotype[i]) %>%
+    select(Pheno, Marker, Del_P_adj)
+  Del.QTLs <- rbind(Del.QTLs,Dels)
+  # P. nigra
+  Nigs <- p.file %>%
+    filter(Nig_P_adj != "NA" & Nig_P_adj <= 0.1) %>%
+    mutate(Pheno = p.files.paths$phenotype[i]) %>%
+    select(Pheno, Marker, Nig_P_adj)
+  Nig.QTLs <- rbind(Nig.QTLs,Nigs)
+}
+```
+
+#### P. deltoides ####
+```{r}
+Del.QTLs.adj <- Del.QTLs %>%
+  filter(Pheno != "Test") %>%
+  rowwise() %>%
+  mutate(Linkage_Class = Linkage.define(Del_P_adj))
+Del.QTLs.adj
+```
+
+#### P. nigra ####
+```{r}
+Nig.QTLs.adj <- Nig.QTLs %>%
+  filter(Pheno != "Test") %>%
+  rowwise() %>%
+  mutate(Linkage_Class = Linkage.define(Nig_P_adj))
+Nig.QTLs.adj
+```
+
+### export files ###
+```{r}
+write_csv(Del.QTLs.adj, "../Pdeltoides_QTL_DelNig_20220829.csv")
+write_csv(Nig.QTLs.adj, "../Pnigra_QTL_DelNig_20220829.csv")
+```
+
+
+
+
+### Dosage embeded into Nigra genotyp ###
+#### datasets prepared ####
+```{r}
+p.files <- tibble(filename = list.files("../Pvalue_Leaf_lmer/"))
+p.files.paths <- p.files %>%
+  mutate(filepath = paste("../Pvalue_Leaf_lmer/", filename, sep = "")) %>%
+  mutate(phenotype = str_replace(string = filename, pattern = "(.*).csv", replacement = "\\1"))
+head(p.files.paths)
+```
+
+#### adjust dataset ####
+```{r}
+Del.QTLs <- tibble(Pheno = c("Test"),
+                   Marker = c("Test"),
+                   Del_P_adj = c(123))
+Nig.QTLs <- tibble(Pheno = c("Test"),
+                   Marker = c("Test"),
+                   Nig_P_adj = c(123))
+for (i in 1:length(p.files.paths$filename)) {
+  p.file <- read_csv(p.files.paths$filepath[i])
+  # P.deltoides
+  Dels <- p.file %>%
+    filter(Del_P_adj != "NA" & Del_P_adj <= 0.1) %>%
+    mutate(Pheno = p.files.paths$phenotype[i]) %>%
+    select(Pheno, Marker, Del_P_adj)
+  Del.QTLs <- rbind(Del.QTLs,Dels)
+  # P. nigra
+  Nigs <- p.file %>%
+    filter(Nig_P_adj != "NA" & Nig_P_adj <= 0.1) %>%
+    mutate(Pheno = p.files.paths$phenotype[i]) %>%
+    select(Pheno, Marker, Nig_P_adj)
+  Nig.QTLs <- rbind(Nig.QTLs,Nigs)
+}
+```
+
+#### P. deltoides ####
+```{r}
+Del.QTLs.adj <- Del.QTLs %>%
+  filter(Pheno != "Test") %>%
+  rowwise() %>%
+  mutate(Linkage_Class = Linkage.define(Del_P_adj))
+Del.QTLs.adj
+```
+
+#### P. nigra ####
+```{r}
+Nig.QTLs.adj <- Nig.QTLs %>%
+  filter(Pheno != "Test") %>%
+  rowwise() %>%
+  mutate(Linkage_Class = Linkage.define(Nig_P_adj))
+Nig.QTLs.adj
+```
+
+### export files ###
+```{r}
+write_csv(Del.QTLs.adj, "../Pdeltoides_QTL_lmer_20220829.csv")
+write_csv(Nig.QTLs.adj, "../Pnigra_QTL_lmer_20220829.csv")
+```
+
 
