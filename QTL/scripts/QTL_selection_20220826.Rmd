@@ -198,7 +198,7 @@ write_csv(Nig.QTLs.adj, "../Pnigra_QTL_DelNig_20220829.csv")
 
 
 
-### Dosage embeded into Nigra genotyp ###
+### Dosage embeded into Nigra genotype ###
 #### datasets prepared ####
 ```{r}
 p.files <- tibble(filename = list.files("../Pvalue_Leaf_lmer/"))
