@@ -1,0 +1,83 @@
+---
+title: "kmer_visualization"
+author: "Weier Guo"
+date: '2022-09-01'
+output: html_document
+---
+
+### Introduction ###
+This Markdown is to visualize the sampling kmers (0.1%) from bulk tables.
+Three phenotypes (depth, width, mvd) are all included. 
+
+### Input datasets and libraries ###
+#### library ####
+```{r}
+library(tidyverse)
+library(ggplot2)
+```
+
+
+#### datasets ####
+```{r}
+depth.sample <- read_tsv("../bulk_table/depth1_depth2_combined-31mers_0.1%_sample1.txt")
+width.sample <- read_tsv("../bulk_table/width1_width2_combined-21mers_0.1%_sample1.txt")
+mvd.sample <- read_tsv("../bulk_table/mvd1_mvd2_combined-31mers_0.1%_sample1.txt")
+depth.sample
+width.sample
+mvd.sample
+```
+
+### plot out distribution of kmer numbers ###
+#### switch table to longer format ####
+```{r}
+# depth
+# filter out extreme kmer numbers
+depth.sample.filt <- depth.sample %>%
+  filter(depth1 <= 40) %>%
+  filter(depth2 <= 40)
+depth.sample.long <- depth.sample.filt %>%
+  pivot_longer(c(depth1, depth2),
+               names_to = "Bulk_Group",
+               values_to = "Number")
+depth.sample.long
+
+#visualization
+ggplot(depth.sample.long, aes(x=Number, fill=Bulk_Group)) +
+  geom_histogram(bins = 30, position = "dodge") 
+```
+
+```{r}
+# width
+# filter out extreme kmer numbers
+width.sample.filt <- width.sample %>%
+  filter(width1 <= 40) %>%
+  filter(width2 <= 40)
+width.sample.long <- width.sample.filt %>%
+  pivot_longer(c(width1, width2),
+               names_to = "Bulk_Group",
+               values_to = "Number")
+width.sample.long
+
+# visualization
+ggplot(width.sample.long, aes(x=Number, fill=Bulk_Group)) +
+  geom_histogram(bins = 20, position = "dodge") 
+```
+
+```{r}
+# mvd
+# filter out extreme kmer numbers
+mvd.sample.filt <- mvd.sample %>%
+  filter(mvd1 <= 40) %>%
+  filter(mvd2 <= 40)
+mvd.sample.long <- mvd.sample.filt %>%
+  pivot_longer(c(mvd1, mvd2),
+               names_to = "Bulk_Group",
+               values_to = "Number")
+mvd.sample.long
+
+# visualization
+ggplot(mvd.sample.long, aes(x=Number, fill=Bulk_Group)) +
+  geom_histogram(bins = 30, position = "dodge") 
+```
+
+

@@ -35,11 +35,13 @@ samp_i = list(np.random.choice(l, samp_n, replace=False))
 
 ### CREATE NEW FILES ###
 # read input file 
+header = f.readline()
 lines = f.readlines()
 
 # recurrently write output files 
 for i in range(r):
 	o = open(oname+"_"+str(p*100)+"%"+"_sample"+str(i+1)+".txt","w")
+	o.write(header)
 	for j in samp_i:
 		o.write(lines[j])
 	o.close()
