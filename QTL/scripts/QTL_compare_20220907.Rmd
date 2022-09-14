@@ -1,0 +1,48 @@
+---
+title: "QTL_compare"
+author: "Weier Guo"
+date: '2022-09-07'
+output: html_document
+---
+
+### Introduction ###
+This R markdown is to compare dQTL from Heloise research with the dosage QTL from my combined QTL mapping. 
+
+### import library and data ###
+```{r}
+library(tidyverse)
+library(ggplot2)
+```
+
+```{r}
+Helo.dQTL <- read_csv("../loci/Heloise_leaf_dQTL_20220907.csv")
+Weier.dQTL <- read_csv("../loci/Dosage_QTL_DND_20220907.csv")
+Helo.dQTL
+Weier.dQTL
+```
+
+
+### combine two tables by phenotype ###
+```{r}
+Weier.dQTL.pheno <- Weier.dQTL %>%
+  filter(Pheno == "Fourier_PC1:PC3_y2") %>%
+  mutate(Weier.Chr = as.numeric(str_replace(string = Marker, pattern = "Chr(.*)_(.*)_(.*)", replacement = "\\1"))) %>%
+  mutate(Weier.Start = as.numeric(str_replace(string = Marker, pattern = "Chr(.*)_(.*)_(.*)", replacement = "\\2"))) %>%
+  mutate(Weier.End = as.numeric(str_replace(string = Marker, pattern = "Chr(.*)_(.*)_(.*)", replacement = "\\3"))) %>%
+  select(Pheno, Weier.Chr, Weier.Start, Weier.End, Dos_P_adj, Linkage_Class)
+
+Helo.dQTL.pheno <- Helo.dQTL %>%
+    filter(Trait == "Fourier_PC1:PC3_y2") %>%
+    mutate(Helo.Chr = Chr) %>%
+    mutate(Helo.Start = `Start (bp)`) %>%
+    mutate(Helo.End = `End (bp)`) %>%
+    mutate(Helo.Linkage.Class = `phenotype dQTL class`) %>%
+    mutate(Helo.Variance = `Percentage variance explained`) %>%
+    select(Trait, Helo.Chr, Helo.Start, Helo.End, Helo.Linkage.Class, Helo.Variance)
+
+Weier.dQTL.pheno
+Helo.dQTL.pheno
+```
+
+
+

@@ -169,9 +169,103 @@ leaf.Del.Nig.Dos <- left_join(Del.Nig.Dos.geno,leaf.new,by = "Old.Name")
 leaf.Del.Nig.Dos
 ```
 
+
+### adjusted QTL ###
+This step is to remove samples with dosage variations on chr02 markers, to identify whether there are other QTLs jumped out. 
+
+1. Get the dosage variation samples on dosage_gt
+```{r}
+dosage.gt %>%
+  filter(Chr02_4204964_5059530_I == "0")
+```
+
+2. remove these samples within three genotype lists 
+```{r}
+deltoides.gt.noC2 <- deltoides.gt %>%
+  filter(Old.Name != "GWR_100_152" & Old.Name != "GWR_100_459")
+nigra.gt.noC2 <- nigra.gt %>%
+  filter(Old.Name != "GWR_100_152" & Old.Name != "GWR_100_459")
+dosage.gt.noC2 <- dosage.gt %>%
+  filter(Old.Name != "GWR_100_152" & Old.Name != "GWR_100_459")
+```
+
+3. combine three genotype lists
+```{r}
+Del.Nig.Dos.geno.noC2 <- deltoides.gt.noC2[,1]
+for (i in 2:ncol(deltoides.gt.noC2)) {
+  marker <- cbind(deltoides.gt.noC2[,i],nigra.gt.noC2[,i])
+  Del.Nig.Dos.geno.noC2 <- cbind(Del.Nig.Dos.geno.noC2, marker)
+}
+head(Del.Nig.Dos.geno.noC2)
+```
+
+4. add phenotypes
+```{r}
+leaf.Del.Nig.Dos.noC2 <- left_join(Del.Nig.Dos.geno.noC2,leaf.new,by = "Old.Name")
+leaf.Del.Nig.Dos.noC2
+```
+
+
+
 ### create linear model ###
 1. load library
 ```{r}
 library(lmerTest)
 library(lme4)
 ```
+
+2. recurrently get Pvalue list and Manhattan plot 
+```{r}
+# Y ~ Deltoides + Nigra (embedded with dosage variation)
+for (j in 1928:length(leaf.Del.Nig.Dos.noC2)) {
+  Pheno <- leaf.Del.Nig.Dos.noC2[,j]
+  pheno.name <- colnames(leaf.Del.Nig.Dos.noC2)[j]
+  geno <- seq(2,1927,2)
+  model.pvalue <- tibble(Marker = c("Test"), 
+                        Intercept = c(123), 
+                        Deltoides = c(123), 
+                        Nigra = c(123))
+
+  for (i in geno) {
+    colnames(leaf.Del.Nig.Dos.noC2)
+    m <- summary(lm(Pheno ~ leaf.Del.Nig.Dos.noC2[,i] + leaf.Del.Nig.Dos.noC2[,i+1], data = leaf.Del.Nig.Dos.noC2))
+    pvalue <- m$coefficients[,4]
+    if (length(pvalue) < 3) {
+      diff <- 3 - length(pvalue)
+      for (j in 1:diff) {
+        pvalue <- c(pvalue,"NA")
+      }
+    }
+    P.value <- c(colnames(deltoides_gt)[i/2+1],pvalue)
+    model.pvalue <- rbind(model.pvalue,P.value)
+  }
+  model.pvalue <- model.pvalue %>% 
+    filter(Marker != "Test") %>%
+    mutate(Del_P_adj = p.adjust(as.numeric(Deltoides), "BH")) %>%
+    mutate(Nig_P_adj = p.adjust(as.numeric(Nigra), "BH")) %>%
+    mutate(CHR = as.numeric(str_replace(string = Marker, pattern = "(...)(..)_(.*)_(.*)",replacement = "\\2"))) %>%
+    mutate(BP = as.numeric(str_replace(string = Marker, pattern = "(...)(..)_(.*)_(.*)", replacement = "\\3")))
+  
+  # save pvalue file
+  write_csv(model.pvalue, paste("../Pvalue_Leaf_DN_noC2/", pheno.name, ".csv", sep = ""))
+  
+  # Manhattan plot for four variables
+  # Deltoides
+  Del.man <- model.pvalue %>%
+    select(Marker, CHR, BP, Del_P_adj) %>%
+    filter(Del_P_adj != "NA")
+  manhattan(Del.man, snp = "Marker", p = "Del_P_adj", suggestiveline = -log10(0.05), genomewideline =-log10(0.1), main = paste("Manhattan_Deltoides", pheno.name, sep = "_"))
+  dev.copy(png, paste("../Manhattan_Leaf_DN_noC2/Manhattan_Deltoides_", pheno.name, ".png", sep = ""), width = 500, height = 300)
+  dev.off()
+  # Nigra
+  Nig.man <- model.pvalue %>%
+    select(Marker, CHR, BP, Nig_P_adj) %>%
+    filter(Nig_P_adj != "NA")
+  manhattan(Nig.man, snp = "Marker", p = "Nig_P_adj", suggestiveline = -log10(0.05), genomewideline =-log10(0.1), main = paste("Manhattan_Nigra", pheno.name, sep = "_"))
+  dev.copy(png, paste("../Manhattan_Leaf_DN_noC2/Manhattan_Nigra_", pheno.name, ".png", sep = ""), width = 500, height = 300)
+  dev.off()
+}
+```
+
+
+

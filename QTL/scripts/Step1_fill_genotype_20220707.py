@@ -97,8 +97,11 @@ for item in mpos_pair:
 			for marker in Ori_mk[int(chr1[3:])]:
 				Genome_mk[int(chr1[3:])] += [marker]
 		# add newly snythesized marker
-		adj_marker = chr1+"_"+str(int(end1)+1)+"_"+str(int(start2)-1)
-		Genome_mk[int(chr1[3:])] += [adj_marker]
+		if int(end1)+1 == int(start2):
+			continue
+		else:
+			adj_marker = chr1+"_"+str(int(end1)+1)+"_"+str(int(start2)-1)
+			Genome_mk[int(chr1[3:])] += [adj_marker]
 
 
 # add the last marker for each chromosome
