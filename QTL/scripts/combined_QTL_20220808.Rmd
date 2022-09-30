@@ -29,7 +29,7 @@ dataset
 ```{r}
 # genotypes
 nigra_gt <- read_tsv("../output/Pnigra_genome_marker_20220917.txt")
-deltoides_gt <- read_tsv("../output/Pdeltoides_nigraMarker_20220917.txt")
+deltoides_gt <- read_tsv("../output/Pdeltoides_nigraMarker_20220930.txt")
 dosage_gt <- read_tsv("../output/Dosage_nigraMarker_20220917.txt")
 nigra_gt
 deltoides_gt
