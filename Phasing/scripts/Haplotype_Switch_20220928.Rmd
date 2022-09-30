@@ -1,0 +1,553 @@
+---
+title: "haplotype_switch"
+author: "Weier Guo"
+date: '2022-09-28'
+output: html_document
+---
+
+## Introduction ##
+This is the script to prepare haplotype list for F1 genotyping. 
+Specifically, we apply the haplotype mirrored information (a/b), generated from R/qtl genetic map construction of RNA-seq samples, onto the Step1-haplotype that were used for getting RNA-seq samples genotypes. 
+The logic is to switch alleles in haplotype list. **a** represents the original order so no switch, while **b** represents the new order so switch. 
+
+## Process ##
+
+### load libraries and data ###
+```{r}
+# library
+library(tidyverse)
+```
+
+```{r}
+# P.nigra 
+dir.info <- read_csv("../input/Pnigra_NewOrderMarker_20220922.csv")
+nig.haplo <- read_tsv("../input/step1-male-haplotype-20210602.txt")
+dir.info
+head(nig.haplo)
+```
+
+### select Direction which is **b** (meaning need to switch) ###
+```{r}
+dir.info %>%
+  rowwise() %>%
+  filter(str_sub(Direction,-1) == "b") %>%
+  mutate(Chr = str_replace(string = Pos, pattern = "(.*)_(.*)_(.*)", replacement = "\\1")) %>%
+  mutate(Start = as.numeric(str_replace(string = Pos, pattern = "(.*)_(.*)_(.*)", replacement = "\\2"))) %>%
+  mutate(End = as.numeric(str_replace(string = Pos, pattern = "(.*)_(.*)_(.*)", replacement = "\\3")))
+```
+
+### adjust haplotype list ###
+#### Chr03 ####
+```{r}
+# Chr03
+# get target rows M1/M2 switched
+nig.haplo3 <- nig.haplo %>% 
+  filter(Chrom == "Chr03") %>%
+  filter(Pos >= 9254879) %>%
+  mutate(M1new = M2) %>%
+  mutate(M2new = M1) %>%
+  select(Chrom, Pos, M1new, M2new, F1, F2)
+colnames(nig.haplo3)[3] <- "M1"
+colnames(nig.haplo3)[4] <- "M2"
+nig.haplo3 
+
+# get a list without chr03
+nig.haplo_3 <- nig.haplo %>%
+  filter(Chrom != "Chr03")
+
+# get a list with only chr03 not switched rows
+nig.haplo3.no <- nig.haplo %>%
+  filter(Chrom == "Chr03" & Pos < 9254879)
+
+# combine no switched rows with swtiched rows in Chr03
+nig.haplo.3 <- rbind(nig.haplo3.no, nig.haplo3) %>%
+  arrange(Pos)
+nig.haplo.3
+
+# combine new chr03 part into the whole haplotype list
+nig.haplo <- rbind(nig.haplo_3, nig.haplo.3)
+nig.haplo
+
+```
+
+#### Chr04 ####
+```{r}
+# Chr04
+# get target rows M1/M2 switched
+nig.haplo4 <- nig.haplo %>% 
+  filter(Chrom == "Chr04") %>%
+  filter(Pos >= 22346223) %>%
+  mutate(M1new = M2) %>%
+  mutate(M2new = M1) %>%
+  select(Chrom, Pos, M1new, M2new, F1, F2)
+colnames(nig.haplo4)[3] <- "M1"
+colnames(nig.haplo4)[4] <- "M2"
+nig.haplo4 
+
+# get a list without chr04
+nig.haplo_4 <- nig.haplo %>%
+  filter(Chrom != "Chr04")
+
+# get a list with only chr04 not switched rows
+nig.haplo4.no <- nig.haplo %>%
+  filter(Chrom == "Chr04" & Pos < 22346223)
+
+# combine no switched rows with swtiched rows in Chr04
+nig.haplo.4 <- rbind(nig.haplo4.no, nig.haplo4) %>%
+  arrange(Pos)
+nig.haplo.4
+
+# combine new chr04 part into the whole haplotype list
+nig.haplo <- rbind(nig.haplo_4, nig.haplo.4)
+nig.haplo
+
+```
+
+#### Chr09 ####
+```{r}
+# Chr09
+# get target rows M1/M2 switched
+nig.haplo9 <- nig.haplo %>% 
+  filter(Chrom == "Chr09") %>%
+  filter(Pos >= 10169169) %>%
+  mutate(M1new = M2) %>%
+  mutate(M2new = M1) %>%
+  select(Chrom, Pos, M1new, M2new, F1, F2)
+colnames(nig.haplo9)[3] <- "M1"
+colnames(nig.haplo9)[4] <- "M2"
+nig.haplo9 
+
+# get a list without chr09
+nig.haplo_9 <- nig.haplo %>%
+  filter(Chrom != "Chr09")
+
+# get a list with only chr09 not switched rows
+nig.haplo9.no <- nig.haplo %>%
+  filter(Chrom == "Chr09" & Pos < 10169169)
+
+# combine no switched rows with swtiched rows in Chr09
+nig.haplo.9 <- rbind(nig.haplo9.no, nig.haplo9) %>%
+  arrange(Pos)
+nig.haplo.9
+
+# combine new chr09 part into the whole haplotype list
+nig.haplo <- rbind(nig.haplo_9, nig.haplo.9)
+nig.haplo
+```
+
+#### Chr13 ####
+```{r}
+# Chr13
+# get target rows M1/M2 switched
+nig.haplo13 <- nig.haplo %>% 
+  filter(Chrom == "Chr13") %>%
+  filter(Pos <= 15621666) %>%
+  mutate(M1new = M2) %>%
+  mutate(M2new = M1) %>%
+  select(Chrom, Pos, M1new, M2new, F1, F2)
+colnames(nig.haplo13)[3] <- "M1"
+colnames(nig.haplo13)[4] <- "M2"
+nig.haplo13
+
+# get a list without chr13
+nig.haplo_13 <- nig.haplo %>%
+  filter(Chrom != "Chr13")
+
+# get a list with only chr13 not switched rows
+nig.haplo13.no <- nig.haplo %>%
+  filter(Chrom == "Chr13" & Pos > 15621666)
+
+# combine no switched rows with swtiched rows in Chr13
+nig.haplo.13 <- rbind(nig.haplo13.no, nig.haplo13) %>%
+  arrange(Pos)
+nig.haplo.13
+
+# combine new chr13 part into the whole haplotype list
+nig.haplo <- rbind(nig.haplo_13, nig.haplo.13)
+nig.haplo
+```
+
+#### Chr16 ####
+```{r}
+# Chr16
+# get target rows M1/M2 switched
+nig.haplo16 <- nig.haplo %>% 
+  filter(Chrom == "Chr16") %>%
+  filter(Pos >= 5050208 & Pos <= 12458590) %>%
+  mutate(M1new = M2) %>%
+  mutate(M2new = M1) %>%
+  select(Chrom, Pos, M1new, M2new, F1, F2)
+colnames(nig.haplo16)[3] <- "M1"
+colnames(nig.haplo16)[4] <- "M2"
+nig.haplo16 
+
+# get a list without chr16
+nig.haplo_16 <- nig.haplo %>%
+  filter(Chrom != "Chr16")
+
+# get a list with only chr16 not switched rows
+nig.haplo16.no <- nig.haplo %>%
+  filter(Chrom == "Chr16") %>%
+  filter(Pos < 5050208 | Pos > 12458590)
+
+# combine no switched rows with swtiched rows in Chr16
+nig.haplo.16 <- rbind(nig.haplo16.no, nig.haplo16) %>%
+  arrange(Pos)
+nig.haplo.16
+
+# combine new chr16 part into the whole haplotype list
+nig.haplo <- rbind(nig.haplo_16, nig.haplo.16)
+nig.haplo
+```
+
+#### Chr18 ####
+```{r}
+# Chr18
+# get target rows M1/M2 switched
+nig.haplo18 <- nig.haplo %>% 
+  filter(Chrom == "Chr18") %>%
+  filter(Pos >= 12139615 & Pos <= 15053717) %>%
+  mutate(M1new = M2) %>%
+  mutate(M2new = M1) %>%
+  select(Chrom, Pos, M1new, M2new, F1, F2)
+colnames(nig.haplo18)[3] <- "M1"
+colnames(nig.haplo18)[4] <- "M2"
+nig.haplo18 
+
+# get a list without chr18
+nig.haplo_18 <- nig.haplo %>%
+  filter(Chrom != "Chr18")
+
+# get a list with only chr18 not switched rows
+nig.haplo18.no <- nig.haplo %>%
+  filter(Chrom == "Chr18") %>%
+  filter(Pos < 12139615 | Pos > 15053717)
+
+# combine no switched rows with swtiched rows in Chr18
+nig.haplo.18 <- rbind(nig.haplo18.no, nig.haplo18) %>%
+  arrange(Pos)
+nig.haplo.18
+
+# combine new chr18 part into the whole haplotype list
+nig.haplo <- rbind(nig.haplo_18, nig.haplo.18)
+nig.haplo
+```
+
+#### Chr19 ####
+```{r}
+# Chr19
+# get target rows M1/M2 switched
+nig.haplo19 <- nig.haplo %>% 
+  filter(Chrom == "Chr19") %>%
+  filter(Pos >= 11155118) %>%
+  mutate(M1new = M2) %>%
+  mutate(M2new = M1) %>%
+  select(Chrom, Pos, M1new, M2new, F1, F2)
+colnames(nig.haplo19)[3] <- "M1"
+colnames(nig.haplo19)[4] <- "M2"
+nig.haplo19 
+
+# get a list without chr19
+nig.haplo_19 <- nig.haplo %>%
+  filter(Chrom != "Chr19")
+
+# get a list with only chr19 not switched rows
+nig.haplo19.no <- nig.haplo %>%
+  filter(Chrom == "Chr19" & Pos < 11155118) 
+
+# combine no switched rows with swtiched rows in Chr19
+nig.haplo.19 <- rbind(nig.haplo19.no, nig.haplo19) %>%
+  arrange(Pos)
+nig.haplo.19
+
+# combine new chr19 part into the whole haplotype list
+nig.haplo <- rbind(nig.haplo_19, nig.haplo.19)
+nig.haplo
+```
+
+### arrange the chromosome order ###
+```{r}
+nig.haplo.new <- nig.haplo %>%
+  mutate(Chrom.Num = as.numeric(str_replace(string = Chrom, pattern = "Chr(.*)", replacement = "\\1"))) %>%
+  arrange(Chrom.Num) %>%
+  select(Chrom, Pos, M1, M2, F1, F2)
+
+unique(nig.haplo.new$Chrom)
+```
+
+### output new haplotype ###
+```{r}
+# nigra
+write_tsv(nig.haplo.new, "../output/Pnigra_haplotype_20220929.txt")
+```
+
+
+
+
+## P.deltoides ##
+### input dataset ###
+```{r}
+# P.nigra 
+dir.info.del <- read_csv("../input/Pdeltoides_NewOrderMarker_20220929.csv")
+del.haplo <- read_tsv("../input/step1-haplotype-female-20210607.txt")
+dir.info.del
+head(del.haplo)
+```
+
+### select Direction which is **b** (meaning need to switch) ###
+```{r}
+dir.info.del %>%
+  rowwise() %>%
+  filter(str_sub(Direction,-1) == "b") %>%
+  mutate(Chr = str_replace(string = Pos, pattern = "(.*)_(.*)_(.*)", replacement = "\\1")) %>%
+  mutate(Start = as.numeric(str_replace(string = Pos, pattern = "(.*)_(.*)_(.*)", replacement = "\\2"))) %>%
+  mutate(End = as.numeric(str_replace(string = Pos, pattern = "(.*)_(.*)_(.*)", replacement = "\\3")))
+```
+
+### adjust haplotype list ###
+#### Chr01 ####
+```{r}
+# Chr01
+# get target rows M1/M2 switched
+del.haplo1 <- del.haplo %>% 
+  filter(Chrom == "Chr01") %>%
+  filter((Pos <= 12100252) | (Pos >= 12667849 & Pos <= 21680968) | (Pos >= 25506608 & Pos <= 41070247) | (Pos >= 48329818)) %>%
+  mutate(F1new = F2) %>%
+  mutate(F2new = F1) %>%
+  select(Chrom, Pos, M1, M2, F1new, F2new)
+colnames(del.haplo1)[5] <- "F1"
+colnames(del.haplo1)[6] <- "F2"
+del.haplo1 
+
+# get a list without chr01
+del.haplo_1 <- del.haplo %>%
+  filter(Chrom != "Chr01")
+
+# get a list with only chr01 not switched rows
+del.haplo1.no <- del.haplo %>%
+  filter(Chrom == "Chr01") %>%
+  filter((Pos > 12100252 & Pos < 12667849) | (Pos > 21680968 & Pos < 25506608) | (Pos > 41070247 & Pos < 48329818))
+
+# combine no switched rows with swtiched rows in Chr01
+del.haplo.1 <- rbind(del.haplo1.no, del.haplo1) %>%
+  arrange(Pos)
+del.haplo.1
+
+# combine new chr03 part into the whole haplotype list
+del.haplo <- rbind(del.haplo_1, del.haplo.1)
+del.haplo
+```
+
+#### Chr08 ####
+```{r}
+# Chr08
+# get target rows M1/M2 switched
+del.haplo8 <- del.haplo %>% 
+  filter(Chrom == "Chr08") %>%
+  filter((Pos <= 1914708) | (Pos >= 5003493)) %>%
+  mutate(F1new = F2) %>%
+  mutate(F2new = F1) %>%
+  select(Chrom, Pos, M1, M2, F1new, F2new)
+colnames(del.haplo8)[5] <- "F1"
+colnames(del.haplo8)[6] <- "F2"
+del.haplo8 
+
+# get a list without chr08
+del.haplo_8 <- del.haplo %>%
+  filter(Chrom != "Chr08")
+
+# get a list with only chr08 not switched rows
+del.haplo8.no <- del.haplo %>%
+  filter(Chrom == "Chr08") %>%
+  filter(Pos > 1914708 & Pos < 5003493)
+
+# combine no switched rows with swtiched rows in Chr08
+del.haplo.8 <- rbind(del.haplo8.no, del.haplo8) %>%
+  arrange(Pos)
+del.haplo.8
+
+# combine new chr08 part into the whole haplotype list
+del.haplo <- rbind(del.haplo_8, del.haplo.8)
+del.haplo
+```
+
+#### Chr03 ####
+```{r}
+# Chr03
+# get target rows M1/M2 switched
+del.haplo3 <- del.haplo %>% 
+  filter(Chrom == "Chr03") %>%
+  filter((Pos >= 12255539 & Pos <= 12952113) | (Pos >= 21395440 & Pos <= 21733840)) %>%
+  mutate(F1new = F2) %>%
+  mutate(F2new = F1) %>%
+  select(Chrom, Pos, M1, M2, F1new, F2new)
+colnames(del.haplo3)[5] <- "F1"
+colnames(del.haplo3)[6] <- "F2"
+del.haplo3 
+
+# get a list without chr03
+del.haplo_3 <- del.haplo %>%
+  filter(Chrom != "Chr03")
+
+# get a list with only chr03 not switched rows
+del.haplo3.no <- del.haplo %>%
+  filter(Chrom == "Chr03") %>%
+  filter((Pos < 12255539) | (Pos > 12952113 & Pos < 21395440))
+
+# combine no switched rows with swtiched rows in Chr03
+del.haplo.3 <- rbind(del.haplo3.no, del.haplo3) %>%
+  arrange(Pos)
+del.haplo.3
+
+# combine new chr03 part into the whole haplotype list
+del.haplo <- rbind(del.haplo_3, del.haplo.3)
+del.haplo
+```
+
+#### Chr04 ####
+```{r}
+# Chr04
+# get target rows M1/M2 switched
+del.haplo4 <- del.haplo %>% 
+  filter(Chrom == "Chr04") %>%
+  filter((Pos >= 2791762 & Pos <= 3125774) | (Pos >= 7291672 & Pos <= 19311643)) %>%
+  mutate(F1new = F2) %>%
+  mutate(F2new = F1) %>%
+  select(Chrom, Pos, M1, M2, F1new, F2new)
+colnames(del.haplo4)[5] <- "F1"
+colnames(del.haplo4)[6] <- "F2"
+del.haplo4
+
+# get a list without chr04
+del.haplo_4 <- del.haplo %>%
+  filter(Chrom != "Chr04")
+
+# get a list with only chr04 not switched rows
+del.haplo4.no <- del.haplo %>%
+  filter(Chrom == "Chr04") %>%
+  filter((Pos < 2791762) | (Pos > 3125774 & Pos < 7291672) | (Pos > 19311643))
+
+# combine no switched rows with swtiched rows in Chr04
+del.haplo.4 <- rbind(del.haplo4.no, del.haplo4) %>%
+  arrange(Pos)
+del.haplo.4
+
+# combine new chr04 part into the whole haplotype list
+del.haplo <- rbind(del.haplo_4, del.haplo.4)
+del.haplo
+```
+
+#### Chr10 ####
+```{r}
+# Chr10
+# get target rows M1/M2 switched
+del.haplo10 <- del.haplo %>% 
+  filter(Chrom == "Chr10") %>%
+  filter(Pos >= 11691011) %>%
+  mutate(F1new = F2) %>%
+  mutate(F2new = F1) %>%
+  select(Chrom, Pos, M1, M2, F1new, F2new)
+colnames(del.haplo10)[5] <- "F1"
+colnames(del.haplo10)[6] <- "F2"
+del.haplo10
+
+# get a list without chr10
+del.haplo_10 <- del.haplo %>%
+  filter(Chrom != "Chr10")
+
+# get a list with only chr10 not switched rows
+del.haplo10.no <- del.haplo %>%
+  filter(Chrom == "Chr10") %>%
+  filter(Pos < 11691011)
+
+# combine no switched rows with swtiched rows in Chr10
+del.haplo.10 <- rbind(del.haplo10.no, del.haplo10) %>%
+  arrange(Pos)
+del.haplo.10
+
+# combine new chr10 part into the whole haplotype list
+del.haplo <- rbind(del.haplo_10, del.haplo.10)
+del.haplo
+```
+
+#### Chr14 ####
+```{r}
+# Chr14
+# get target rows M1/M2 switched
+del.haplo14 <- del.haplo %>% 
+  filter(Chrom == "Chr14") %>%
+  filter(Pos >= 9326713 & Pos <= 9853852) %>%
+  mutate(F1new = F2) %>%
+  mutate(F2new = F1) %>%
+  select(Chrom, Pos, M1, M2, F1new, F2new)
+colnames(del.haplo14)[5] <- "F1"
+colnames(del.haplo14)[6] <- "F2"
+del.haplo14
+
+# get a list without chr14
+del.haplo_14 <- del.haplo %>%
+  filter(Chrom != "Chr14")
+
+# get a list with only chr14 not switched rows
+del.haplo14.no <- del.haplo %>%
+  filter(Chrom == "Chr14") %>%
+  filter(Pos < 9326713 | Pos > 9853852)
+
+# combine no switched rows with swtiched rows in Chr14
+del.haplo.14 <- rbind(del.haplo14.no, del.haplo14) %>%
+  arrange(Pos)
+del.haplo.14
+
+# combine new chr14 part into the whole haplotype list
+del.haplo <- rbind(del.haplo_14, del.haplo.14)
+del.haplo
+```
+
+#### Chr19 ####
+```{r}
+# Chr19
+# get target rows M1/M2 switched
+del.haplo19 <- del.haplo %>% 
+  filter(Chrom == "Chr19") %>%
+  filter(Pos >= 8359965) %>%
+  mutate(F1new = F2) %>%
+  mutate(F2new = F1) %>%
+  select(Chrom, Pos, M1, M2, F1new, F2new)
+colnames(del.haplo19)[5] <- "F1"
+colnames(del.haplo19)[6] <- "F2"
+del.haplo19
+
+# get a list without chr19
+del.haplo_19 <- del.haplo %>%
+  filter(Chrom != "Chr19")
+
+# get a list with only chr19 not switched rows
+del.haplo19.no <- del.haplo %>%
+  filter(Chrom == "Chr19") %>%
+  filter(Pos < 8359965)
+
+# combine no switched rows with swtiched rows in Chr19
+del.haplo.19 <- rbind(del.haplo19.no, del.haplo19) %>%
+  arrange(Pos)
+del.haplo.19
+
+# combine new chr19 part into the whole haplotype list
+del.haplo <- rbind(del.haplo_19, del.haplo.19)
+del.haplo
+```
+
+### arrange the chromosome order ###
+```{r}
+del.haplo.new <- del.haplo %>%
+  mutate(Chrom.Num = as.numeric(str_replace(string = Chrom, pattern = "Chr(.*)", replacement = "\\1"))) %>%
+  arrange(Chrom.Num) %>%
+  select(Chrom, Pos, M1, M2, F1, F2)
+
+unique(del.haplo.new$Chrom)
+```
+
+### output new haplotype ###
+```{r}
+# deltoides
+write_tsv(del.haplo.new, "../output/Pdeltoides_haplotype_20220930.txt")
+```
