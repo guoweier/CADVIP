@@ -21,7 +21,7 @@ library(tidyverse)
 ```{r}
 # P.nigra 
 dir.info <- read_csv("../input/Pnigra_NewOrderMarker_20220922.csv")
-nig.haplo <- read_tsv("../input/step1-male-haplotype-20210602.txt")
+nig.haplo <- read_tsv("../input/step1-haplotype-male-20210531.txt")
 dir.info
 head(nig.haplo)
 ```
@@ -278,7 +278,7 @@ unique(nig.haplo.new$Chrom)
 ### output new haplotype ###
 ```{r}
 # nigra
-write_tsv(nig.haplo.new, "../output/Pnigra_haplotype_20220929.txt")
+write_tsv(nig.haplo.new, "../output/Pnigra_haplotype_20221102.txt")
 ```
 
 
@@ -311,7 +311,7 @@ dir.info.del %>%
 # get target rows M1/M2 switched
 del.haplo1 <- del.haplo %>% 
   filter(Chrom == "Chr01") %>%
-  filter((Pos <= 12100252) | (Pos >= 12667849 & Pos <= 21680968) | (Pos >= 25506608 & Pos <= 41070247) | (Pos >= 48329818)) %>%
+  filter((Pos <= 12100252) | (Pos >= 12667849 & Pos <= 48325980)) %>%
   mutate(F1new = F2) %>%
   mutate(F2new = F1) %>%
   select(Chrom, Pos, M1, M2, F1new, F2new)
@@ -326,7 +326,7 @@ del.haplo_1 <- del.haplo %>%
 # get a list with only chr01 not switched rows
 del.haplo1.no <- del.haplo %>%
   filter(Chrom == "Chr01") %>%
-  filter((Pos > 12100252 & Pos < 12667849) | (Pos > 21680968 & Pos < 25506608) | (Pos > 41070247 & Pos < 48329818))
+  filter((Pos > 12100252 & Pos < 12667849) | (Pos > 48325980))
 
 # combine no switched rows with swtiched rows in Chr01
 del.haplo.1 <- rbind(del.haplo1.no, del.haplo1) %>%
@@ -344,7 +344,6 @@ del.haplo
 # get target rows M1/M2 switched
 del.haplo8 <- del.haplo %>% 
   filter(Chrom == "Chr08") %>%
-  filter((Pos <= 1914708) | (Pos >= 5003493)) %>%
   mutate(F1new = F2) %>%
   mutate(F2new = F1) %>%
   select(Chrom, Pos, M1, M2, F1new, F2new)
@@ -359,7 +358,7 @@ del.haplo_8 <- del.haplo %>%
 # get a list with only chr08 not switched rows
 del.haplo8.no <- del.haplo %>%
   filter(Chrom == "Chr08") %>%
-  filter(Pos > 1914708 & Pos < 5003493)
+  filter(Pos <0)
 
 # combine no switched rows with swtiched rows in Chr08
 del.haplo.8 <- rbind(del.haplo8.no, del.haplo8) %>%
@@ -410,7 +409,6 @@ del.haplo
 # get target rows M1/M2 switched
 del.haplo4 <- del.haplo %>% 
   filter(Chrom == "Chr04") %>%
-  filter((Pos >= 2791762 & Pos <= 3125774) | (Pos >= 7291672 & Pos <= 19311643)) %>%
   mutate(F1new = F2) %>%
   mutate(F2new = F1) %>%
   select(Chrom, Pos, M1, M2, F1new, F2new)
@@ -425,7 +423,7 @@ del.haplo_4 <- del.haplo %>%
 # get a list with only chr04 not switched rows
 del.haplo4.no <- del.haplo %>%
   filter(Chrom == "Chr04") %>%
-  filter((Pos < 2791762) | (Pos > 3125774 & Pos < 7291672) | (Pos > 19311643))
+  filter(Pos < 0)
 
 # combine no switched rows with swtiched rows in Chr04
 del.haplo.4 <- rbind(del.haplo4.no, del.haplo4) %>%
@@ -549,5 +547,5 @@ unique(del.haplo.new$Chrom)
 ### output new haplotype ###
 ```{r}
 # deltoides
-write_tsv(del.haplo.new, "../output/Pdeltoides_haplotype_20220930.txt")
+write_tsv(del.haplo.new, "../output/Pdeltoides_haplotype_20221104.txt")
 ```
