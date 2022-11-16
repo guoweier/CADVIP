@@ -171,7 +171,7 @@ leaf.Del.Nig.Dos
 
 3. Recurrently run linear model for each marker
 ```{r}
-summary(lm(Blup_Transfo_Num_Indents_field_year2 ~ Chr02_4204964_5059530_D + Chr02_4204964_5059530_N * Chr02_4204964_5059530_I, data = leaf.Del.Nig.Dos))
+summary(lm(Blup_Transfo_Num_Indents_field_year2 ~ Chr02_4204964_5059530_D + Chr02_4204964_5059530_N + Chr02_4204964_5059530_I, data = leaf.Del.Nig.Dos))
 ```
 
 #### Recurrently generate all leaf morphology Manhattan plot and pvalue files ####
@@ -184,8 +184,7 @@ for (j in 2873:length(leaf.Del.Nig.Dos)) {
                         Intercept = c(123), 
                         Deltoides = c(123), 
                         Nigra = c(123), 
-                        Dosage = c(123), 
-                        Nigra_Dosage = c(123))
+                        Dosage = c(123))
 
   for (i in geno) {
     colnames(leaf.Del.Nig.Dos)
@@ -237,7 +236,52 @@ for (j in 2873:length(leaf.Del.Nig.Dos)) {
 
 ```
 
-4. Recurrently run linear model with dosage as random effect for each marker
+
+
+#### Permutation test on t value ####
+```{r}
+for (j in 2873:length(leaf.Del.Nig.Dos)) {
+  Pheno <- leaf.Del.Nig.Dos[,j]
+  pheno.name <- colnames(leaf.Del.Nig.Dos)[j]
+  geno <- seq(2,2872,3)
+  model.tvalue <- tibble(Marker = c("Test"), 
+                        Intercept = c(123), 
+                        Deltoides = c(123), 
+                        Nigra = c(123), 
+                        Dosage = c(123))
+
+  for (i in geno) {
+    colnames(leaf.Del.Nig.Dos)
+    m <- summary(lm(Pheno ~ leaf.Del.Nig.Dos[,i] + leaf.Del.Nig.Dos[,i+1] + leaf.Del.Nig.Dos[,i+2], data = leaf.Del.Nig.Dos))
+    tvalue <- m$coefficients[,3]
+    if (length(tvalue) < 4) {
+      diff <- 4 - length(tvalue)
+      for (j in 1:diff) {
+        tvalue <- c(tvalue,"NA")
+      }
+    }
+    T.value <- c(colnames(deltoides_gt)[(i+1)/3+1],tvalue)
+    model.tvalue <- rbind(model.tvalue,T.value)
+  }
+  model.tvalue <- model.tvalue %>% 
+    filter(Marker != "Test") %>%
+    mutate(CHR = as.numeric(str_replace(string = Marker, pattern = "(...)(..)_(.*)_(.*)",replacement = "\\2"))) %>%
+    mutate(BP = as.numeric(str_replace(string = Marker, pattern = "(...)(..)_(.*)_(.*)", replacement = "\\3")))
+  
+  # save tvalue file
+  write_csv(model.tvalue, paste("../Tvalue_Leaf_DND/", pheno.name, ".csv", sep = ""))
+}
+```
+
+
+
+
+
+
+
+
+
+### Recurrently run linear model with dosage as random effect for each marker
 ```{r}
 Delt <- leaf.Del.Nig.Dos[,62]
 Nigr <- leaf.Del.Nig.Dos[,63]
@@ -245,8 +289,6 @@ Dosa <- leaf.Del.Nig.Dos[,64]
 m1 <- summary(lmer(leaf.Del.Nig.Dos[,2891] ~ Delt + Nigr * (1 | Dosa), data = leaf.Del.Nig.Dos))
 m1
 ```
-
-
 
 ```{r}
 for (j in 2891:length(leaf.Del.Nig.Dos)) {
@@ -304,125 +346,21 @@ for (j in 2891:length(leaf.Del.Nig.Dos)) {
 ```
 
 
-### adjusted QTLs ###
-#### remove some dosage variation samples to check other QTLs ####
-```{r}
-dosage.gt %>%
-  filter(Chr02_4204964_5059530_I == "0")
-```
-
-Sample GWR_100_152 and GWR_100_459 have dosage variations at Chr02_4204964_5059530
-#### adjust Pdeltoides genotypes and Onigra genotypes to exclude these two samples ####
-```{r}
-deltoides.gt.noC2 <- deltoides.gt %>%
-  filter(Old.Name != "GWR_100_152" & Old.Name != "GWR_100_459")
-nigra.gt.noC2 <- nigra.gt %>%
-  filter(Old.Name != "GWR_100_152" & Old.Name != "GWR_100_459")
-dosage.gt.noC2 <- dosage.gt %>%
-  filter(Old.Name != "GWR_100_152" & Old.Name != "GWR_100_459")
-```
-
-#### concatenate 3 genotypes ####
-```{r}
-Del.Nig.Dos.geno.noC2 <- deltoides.gt.noC2[,1]
-for (i in 2:ncol(deltoides.gt.noC2)) {
-  marker <- cbind(deltoides.gt.noC2[,i],nigra.gt.noC2[,i],dosage.gt.noC2[,i])
-  Del.Nig.Dos.geno.noC2 <- cbind(Del.Nig.Dos.geno.noC2, marker)
-}
-head(Del.Nig.Dos.geno.noC2)
-```
-
-#### combine genotypes and phenotypes ####
-```{r}
-leaf.Del.Nig.Dos.noC2 <- left_join(Del.Nig.Dos.geno.noC2,leaf.new,by = "Old.Name")
-leaf.Del.Nig.Dos.noC2
-```
-
-#### Recurrently generate all leaf morphology Manhattan plot and pvalue files ####
-```{r}
-# Y ~ Deltoides + Nigra * Dosage
-for (j in 2891:length(leaf.Del.Nig.Dos.noC2)) {
-  Pheno <- leaf.Del.Nig.Dos.noC2[,j]
-  pheno.name <- colnames(leaf.Del.Nig.Dos.noC2)[j]
-  geno <- seq(2,2890,3)
-  model.pvalue <- tibble(Marker = c("Test"), 
-                        Intercept = c(123), 
-                        Deltoides = c(123), 
-                        Nigra = c(123), 
-                        Dosage = c(123), 
-                        Nigra_Dosage = c(123))
-
-  for (i in geno) {
-    colnames(leaf.Del.Nig.Dos.noC2)
-    m <- summary(lm(Pheno ~ leaf.Del.Nig.Dos.noC2[,i] + leaf.Del.Nig.Dos.noC2[,i+1] * leaf.Del.Nig.Dos.noC2[,i+2], data = leaf.Del.Nig.Dos.noC2))
-    pvalue <- m$coefficients[,4]
-    if (length(pvalue) < 5) {
-      diff <- 5 - length(pvalue)
-      for (j in 1:diff) {
-        pvalue <- c(pvalue,"NA")
-      }
-    }
-    P.value <- c(colnames(deltoides_gt)[(i+1)/3+1],pvalue)
-    model.pvalue <- rbind(model.pvalue,P.value)
-  }
-  model.pvalue <- model.pvalue %>% 
-    filter(Marker != "Test") %>%
-    mutate(Del_P_adj = p.adjust(as.numeric(Deltoides), "BH")) %>%
-    mutate(Nig_P_adj = p.adjust(as.numeric(Nigra), "BH")) %>%
-    mutate(Dos_P_adj = p.adjust(as.numeric(Dosage), "BH")) %>%
-    mutate(NigDos_P_adj = p.adjust(as.numeric(Nigra_Dosage), "BH")) %>%
-    mutate(CHR = as.numeric(str_replace(string = Marker, pattern = "(...)(..)_(.*)_(.*)",replacement = "\\2"))) %>%
-    mutate(BP = as.numeric(str_replace(string = Marker, pattern = "(...)(..)_(.*)_(.*)", replacement = "\\3")))
-  
-  # save pvalue file
-  write_csv(model.pvalue, paste("../Pvalue_Leaf_DND_noC2/", pheno.name, ".csv", sep = ""))
-  
-  # Manhattan plot for four variables
-  # Deltoides
-  Del.man <- model.pvalue %>%
-    select(Marker, CHR, BP, Del_P_adj) %>%
-    filter(Del_P_adj != "NA")
-  manhattan(Del.man, snp = "Marker", p = "Del_P_adj", suggestiveline = -log10(0.05), genomewideline =-log10(0.1), main = paste("Manhattan_Deltoides", pheno.name, sep = "_"))
-  dev.copy(png, paste("../Pvalue_Leaf_DND_noC2/Manhattan_Deltoides_", pheno.name, ".png", sep = ""), width = 500, height = 300)
-  dev.off()
-  # Nigra
-  Nig.man <- model.pvalue %>%
-    select(Marker, CHR, BP, Nig_P_adj) %>%
-    filter(Nig_P_adj != "NA")
-  manhattan(Nig.man, snp = "Marker", p = "Nig_P_adj", suggestiveline = -log10(0.05), genomewideline =-log10(0.1), main = paste("Manhattan_Nigra", pheno.name, sep = "_"))
-  dev.copy(png, paste("../Pvalue_Leaf_DND_noC2/Manhattan_Nigra_", pheno.name, ".png", sep = ""), width = 500, height = 300)
-  dev.off()
-  # Dosage
-  Dos.man <- model.pvalue %>%
-    select(Marker, CHR, BP, Dos_P_adj) %>%
-    filter(Dos_P_adj != "NA")
-  manhattan(Dos.man, snp = "Marker", p = "Dos_P_adj", suggestiveline = -log10(0.05), genomewideline =-log10(0.1), main = paste("Manhattan_Dosage", pheno.name, sep = "_"))
-  dev.copy(png, paste("../Pvalue_Leaf_DND_noC2/Manhattan_Dosage_", pheno.name, ".png", sep = ""), width = 500, height = 300)
-  dev.off()
-  # Nigra*Dosage
-  NigDos.man <- model.pvalue %>%
-    select(Marker, CHR, BP, NigDos_P_adj) %>%
-    filter(NigDos_P_adj != "NA")
-  manhattan(NigDos.man, snp = "Marker", p = "NigDos_P_adj", suggestiveline = -log10(0.05), genomewideline =-log10(0.1), main = paste("Manhattan_Nigra_Dosage", pheno.name, sep = "_"))
-  dev.copy(png, paste("../Pvalue_Leaf_DND_noC2/Manhattan_Nigra_Dosage_", pheno.name, ".png", sep = ""), width = 500, height = 300)
-  dev.off()
-}
-
-```
-
-
-
-
 ### marker check ###
 ```{r}
-markers <- colnames(nigra_gt)[-1]
+test.del <- read_tsv("../F1_450/genotype/Pdeltoides_F1_whole_genome_geno_20221115.txt")
+test.nig <- read_tsv("../F1_450/genotype/Pnigra_F1_whole_genome_geno_20221115.txt")
+markers <- colnames(test.nig)[-1]
+rm.Markers <- c()
 for (i in 1:length(markers)) {
   start <- as.numeric(str_replace(string = markers[i], pattern = "(.*)_(.*)_(.*)", replacement = "\\2"))
   end <- as.numeric(str_replace(string = markers[i], pattern = "(.*)_(.*)_(.*)", replacement = "\\3"))
   if (start >= end) {
     print(markers[i])
+    rm.Markers <- c(rm.Markers, markers[i])
   }
 }
+
 ```
 
 

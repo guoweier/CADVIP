@@ -1,6 +1,7 @@
 # Weier Guo Python
 # 07/07/2022
 # 09/17/2022 updated: remove alleles which belongs to the skipped add-on markers because of the adjacency of two original markers. 
+# 11/15/2022 updated: F1 genotype does not have marker numbers row. Remove the first header reading for F1 genotypes. 
 
 import os, sys, math
 from optparse import OptionParser
@@ -61,7 +62,7 @@ for line in g:
 		Genomes[c] = ln[1]
 
 # get markers physical position list
-mname_head = f.readline()
+# mname_head = f.readline()
 mpos_head = f.readline()
 mpos_head = mpos_head.split("\n")[0]
 mpos_hd = mpos_head.split(",")[1:]

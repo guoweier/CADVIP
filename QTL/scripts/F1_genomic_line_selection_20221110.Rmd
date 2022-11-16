@@ -1,0 +1,134 @@
+---
+title: "F1 genomic lines"
+author: "Weier Guo"
+date: '2022-11-10'
+output: html_document
+---
+
+## Introduction ##
+This Notebook is aimed to integrate genotype for F1 genomic lines. 
+There are 450 poplar lines used for genomic QTL. 
+450 threshold are classified through the comparison between F1 genomic genotype and RNA-seq genotype. 
+
+## Process ##
+
+### load library and dataset ###
+```{r}
+# library
+library(tidyverse)
+library(ggplot2)
+```
+
+```{r}
+# original genotype with all samples
+ori.geno.del <- read_tsv("../../Phasing/output/binbySNP_F1_manhaplo_female_20221104.txt") %>%
+  as.data.frame() %>%
+  select(1,2,3,4,5,seq(from=6,to=2025,by=4))
+ori.geno.nig <- read_tsv("../../Phasing/output/binbySNP_F1_manhaplo_male_20221103.txt") %>%
+  as.data.frame() %>%
+  select(1,2,3,4,5,seq(from=6,to=2025,by=4))
+ori.geno.del
+ori.geno.nig
+```
+
+```{r}
+# available sample list
+lines <- read_csv("../output/F1_genomic_lines_20221110.csv")
+lines.dip <- lines %>%
+  filter(is.na(F1.Genotype) == TRUE) %>%
+  mutate(Samples = paste(str_replace(string = Seq.File, pattern = "(.*)_(.*)_aln.sam", replacement = "\\1"), str_replace(string = Seq.File, pattern = "(.*)_(.*)_aln.sam", replacement = "\\2"), sep="-")) %>%
+  select(Samples, `Sample ID`)
+  
+lines.dip
+```
+
+### selectively keep sample columns ###
+```{r}
+# only keep sample columns in geno files with Samples in lines.dip
+ori.samp <- str_replace(string = colnames(ori.geno.del[c(-1,-2,-3,-4,-5)]), pattern = "Haplotype-(.*)", replacement = "\\1")
+tar.samp <- lines.dip$Samples
+tar.samp.col <- c()
+for (i in 1:length(ori.samp)) {
+  if (ori.samp[i] %in% tar.samp) {
+    col.num <- i+5
+    tar.samp.col <- c(tar.samp.col, col.num)
+  }
+}
+#tar.samp.col
+f.geno.del <- ori.geno.del %>%
+  select(1,2,3,4,5,tar.samp.col)
+f.geno.nig <- ori.geno.nig %>%
+  select(1,2,3,4,5,tar.samp.col)
+f.geno.del
+f.geno.nig
+```
+
+
+### adjust geno format ###
+```{r}
+# get a standard format for genotype (deltoides)
+Markers <- f.geno.del %>%
+  mutate(Marker = paste(Chrom, StartPos, EndPos, sep = "_"))%>%
+  select(Marker)
+dim(Markers)
+
+geno.del.t <- f.geno.del %>%
+  select(-1,-2,-3,-4,-5) %>%
+  t()
+dim(geno.del.t)
+colnames(geno.del.t) <- t(Markers)
+geno.del.trans <- as.data.frame(geno.del.t)
+geno.del.trans.named <- geno.del.trans %>%
+  mutate(Old.Name = str_replace(rownames(geno.del.trans), "Haplotype-(.*)", "\\1")) %>%
+  select(Old.Name, everything()) 
+  
+rownames(geno.del.trans.named) <- NULL
+geno.del.trans.named
+```
+
+
+```{r}
+# get a standard format for genotype (nigra)
+Markers <- f.geno.nig %>%
+  mutate(Marker = paste(Chrom, StartPos, EndPos, sep = "_"))%>%
+  select(Marker)
+dim(Markers)
+
+geno.nig.t <- f.geno.nig %>%
+  select(-1,-2,-3,-4,-5) %>%
+  t()
+dim(geno.nig.t)
+colnames(geno.nig.t) <- t(Markers)
+geno.nig.trans <- as.data.frame(geno.nig.t)
+geno.nig.trans.named <- geno.nig.trans %>%
+  mutate(Old.Name = str_replace(rownames(geno.nig.trans), "Haplotype-(.*)", "\\1")) %>%
+  select(Old.Name, everything()) 
+  
+rownames(geno.nig.trans.named) <- NULL
+geno.nig.trans.named
+```
+
+
+### save the files ###
+```{r}
+write_csv(geno.nig.trans.named, "../F1_450/genotype/Pnigra_F1_geno_20221115.csv")
+write_csv(geno.del.trans.named, "../F1_450/genotype/Pdeltoides_F1_geno_20221115.csv")
+```
+
+
+
+### dosage genotype ###
+Based on the dosage variation extracted by Heloise, we build a genotype matrix for dosage with 450 lines. 
+
+#### load files ####
+```{r}
+lesion.unique <- read_tsv("/Users/wendy/Desktop/QTL_demo_Weier/PopIndelsMasterList_v5_unique_genotype.txt")
+lesion <- read_tsv("/Users/wendy/Desktop/QTL_demo_Weier/PopIndelsMasterList_v5.txt")
+lesion.unique
+lesion
+```
+
+
+
+
+

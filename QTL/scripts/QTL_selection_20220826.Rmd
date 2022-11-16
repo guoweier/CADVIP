@@ -119,9 +119,9 @@ Nig.Dos.QTLs.adj
 
 ### export files ###
 ```{r}
-write_csv(Del.QTLs.adj, "../loci/Pdeltoides_QTL_DND_20220925.csv")
-write_csv(Nig.QTLs.adj, "../loci/Pnigra_QTL_DND_20220925.csv")
-write_csv(Dos.QTLs.adj, "../loci/Dosage_QTL_DND_20220925.csv")
+write_csv(Del.QTLs.adj, "../loci/Pdeltoides_QTL_DND_20220930.csv")
+write_csv(Nig.QTLs.adj, "../loci/Pnigra_QTL_DND_20220930.csv")
+write_csv(Dos.QTLs.adj, "../loci/Dosage_QTL_DND_20220930.csv")
 write_csv(Nig.Dos.QTLs.adj, "../loci/PnigraDosage_QTL_lm_20220918.csv")
 ```
 

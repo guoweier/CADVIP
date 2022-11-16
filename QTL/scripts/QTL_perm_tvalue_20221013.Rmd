@@ -1,0 +1,452 @@
+---
+title: "QTL_perm_tvalue"
+author: "Weier Guo"
+date: '2022-10-13'
+output: html_document
+---
+
+## Introduction ##
+This script is to filter QTL results based on t-values through permutation test. 
+
+Model:
+**Phenotype ~ intercept + dosage_genotype + P.deltoides_genotype + P.nigra_genotype**
+It can be started with: 
+**Y ~ beta0 + beta1*gtDeltoides + beta2*gtNigra*Dosage + e**
+**gtDeltoides: (-1,1)**
+**gtNigra: (N1,N2)**
+**Dosage: (0,1,2...) represents (deletion, normal, duplication, ...)**
+Later, it can add on other variables including interactions.
+
+## Working Process ##
+
+### load library and data ###
+library
+```{r}
+library(tidyverse)
+#library(qqman)
+library(ggplot2)
+#library(magrittr)
+library(lmerTest)
+library(lme4)
+```
+
+dataset
+```{r}
+# genotypes
+nigra_gt <- read_tsv("../output/Pnigra_genome_marker_20220917.txt") %>%
+  as.data.frame()
+deltoides_gt <- read_tsv("../output/Pdeltoides_nigraMarker_20220930.txt") %>%
+  as.data.frame()
+dosage_gt <- read_tsv("../output/Dosage_nigraMarker_20220917.txt") %>%
+  as.data.frame()
+nigra_gt
+deltoides_gt
+dosage_gt
+```
+
+
+```{r}
+# phenotypes
+biomass <- read_tsv("../../Kmer/input/pheno_output_table_blup_20220428.txt")
+leaf <- read_tsv("../../Kmer/input/pheno_leaf_20220527.txt")
+vessel <- read_csv("../../Kmer/input/pheno_vessel_20220522.csv")
+biomass
+leaf
+vessel
+```
+
+
+#### phenotype adjustment ####
+```{r}
+# select adjustable phenotypes for leaf
+leaf.list <- read_csv("../input/Leaf_pheno_20220824.csv")
+leaf.list
+```
+
+
+```{r}
+leaf.new <- tibble(leaf$Old.Name)
+for (i in 1:length(leaf.list$V1)) {
+  pheno.name <- leaf.list$V1[i]
+  indice <- which(colnames(leaf) == pheno.name)
+  leaf.new <- cbind(leaf.new, leaf[,indice])
+}
+colnames(leaf.new)[1] <- "Old.Name"
+leaf.new
+```
+
+#### extract phenotypes for RNA-seq samples ####
+```{r}
+leaf.rna <- as.data.frame(left_join(nigra_gt, leaf.new, by = "Old.Name")[c(1,959:1014)])
+leaf.rna
+```
+
+
+
+### create linear model ###
+#### function to extract t-values ####
+```{r}
+# single variable 
+qtlscanone <- function(y, m1) {
+  Tvalue.res <- tibble(Var = c("Test"),
+                   Tvalue = c(0))
+  for (i in 1:ncol(m1)) {
+    m <- summary(lm(y ~ m1[,i]))
+    tvalue <- abs(m$coefficients[-1,3])
+    if (length(tvalue) < 1) {
+      tvalue <- c(tvalue, NA)
+    }
+    Tvalue <- c(i, tvalue)
+    Tvalue.res <- rbind(Tvalue.res, Tvalue)
+  }
+  Tvalue.res <- Tvalue.res %>%
+    filter(Var != "Test") %>%
+    select(Tvalue)
+  return(Tvalue.res)
+}
+```
+
+
+```{r}
+# multivariable
+qtlscan <- function(y, m1, m2, m3) {
+  Tvalue.res <- tibble(Var = c("Test"),
+                   Del = c(0), 
+                   Nig = c(0),
+                   Dos = c(0))
+  for (i in 1:ncol(m1)) {
+    m <- summary(lm(y ~ m1[,i] + m2[,i] + m3[,i])) 
+    tvalue <- abs(m$coefficients[-1,3])
+    if (length(tvalue) < 3) {
+      diff <- 3-length(tvalue)
+      for (j in 1:diff) {
+        tvalue <- c(tvalue, NA)
+      }
+    } 
+    Tvalue <- c(i, tvalue)
+    Tvalue.res <- rbind(Tvalue.res, Tvalue)
+  }
+  Tvalues.res <- Tvalue.res %>%
+    filter(Var != "Test") %>%
+    select(Del, Nig, Dos)
+  return(Tvalues.res)
+}
+```
+
+#### record t values for each marker ####
+```{r}
+for (j in 2:57) {
+  observed.t <- qtlscan(leaf.rna[,j], deltoides_gt[,-1], nigra_gt[,-1], dosage_gt[,-1])
+  name <- str_replace(string = colnames(leaf.rna)[j], pattern = "Blup_Transfo_(.*)", replacement = "\\1")
+  write_csv(observed.t, paste("../perm/DND/observed/Obs_", name, ".csv", sep = ""))
+}
+#obs.t.matrix <- as.matrix(observed.t)
+#obs.t.matrix
+```
+
+#### do permutations ####
+This step should be run on server. 
+```{r, eval=FALSE}
+n.perm <- 1000
+
+for (j in 2:57) {
+  print(colnames(leaf.rna)[j])
+  perm.results <- sapply(1:n.perm, function(p) {
+    # check running status
+    if (p %% 100 == 0) {
+      print(p)
+      }
+    # apply qtlscan
+    t <- qtlscan(sample(leaf.rna[,j]), deltoides_gt[,-1], nigra_gt[,-1], dosage_gt[,-1]) # "sample" does permutation, resorting the phenotypes at each permutation.
+    apply(t, 2, max, na.rm = TRUE)
+    })
+  perm.df <- as.data.frame(perm.results)
+  name <- str_replace(string = colnames(leaf.rna)[j], pattern = "Blup_Transfo_(.*)", replacement = "\\1")
+  write_csv(perm.df, paste("../perm/DND/permutation/Perm_", name, ".csv", sep = ""))
+}
+
+
+#perm.results[,1:10]
+```
+
+
+After running permutation test on server, download all the permutation results to local. 
+Then, set a loop to calculate the threshold for each phenotype. 
+
+#### prepare table to import all permutation results ####
+```{r}
+p.files <- tibble(filename = list.files("../perm/Dos/permutation/"))
+p.files.paths <- p.files %>%
+  mutate(filepath = paste("../perm/Dos/permutation/", filename, sep = "")) %>%
+  mutate(phenotype = str_replace(string = filename, pattern = "Perm_(.*).csv", replacement = "\\1"))
+p.files.paths
+```
+
+#### import all permutation results and collect threshold (90, 95, 99) ###
+#### multivariables ####
+```{r}
+# function to collect permutation threshold
+perm.threshold <- function(rs, ts) {
+  apply(rs, 1, quantile, ts, na.rm = TRUE)
+}
+```
+
+```{r}
+# apply function for each imported permutation results, and collect them
+Perm90s <- tibble(Del = c(123),
+                  Nig = c(123),
+                  Dos = c(123))
+Perm95s <- tibble(Del = c(123),
+                  Nig = c(123),
+                  Dos = c(123))
+Perm99s <- tibble(Del = c(123),
+                  Nig = c(123),
+                  Dos = c(123))
+Name <- c()
+
+for (i in 1:length(p.files.paths$filename)) {
+  p.rs <- read_csv(p.files.paths$filepath[i])
+  Name <- c(Name, p.files.paths$phenotype[i])
+  perm90 <- perm.threshold(p.rs, 0.90)
+  Perm90s <- rbind(Perm90s, perm90)
+  perm95 <- perm.threshold(p.rs, 0.95)
+  Perm95s <- rbind(Perm95s, perm95)
+  perm99 <- perm.threshold(p.rs, 0.99)
+  Perm99s <- rbind(Perm99s, perm99)
+}
+
+Perm90s <- Perm90s %>%
+  filter(Del != 123)
+Perm95s <- Perm95s %>%
+  filter(Del != 123)
+Perm99s <- Perm99s %>%
+  filter(Del != 123)
+
+```
+
+#### single varialbe ####
+```{r}
+# function to collect permutation threshold
+perm.threshold <- function(rs, ts) {
+  apply(rs, 2, quantile, ts, na.rm = TRUE)
+}
+```
+
+```{r}
+# apply function for each imported permutation results, and collect them
+Perm90s <- tibble(Dos = c(123))
+Perm95s <- tibble(Dos = c(123))
+Perm99s <- tibble(Dos = c(123))
+Name <- c()
+
+for (i in 1:length(p.files.paths$filename)) {
+  p.rs <- read_csv(p.files.paths$filepath[i])
+  Name <- c(Name, p.files.paths$phenotype[i])
+  perm90 <- perm.threshold(p.rs, 0.90)
+  Perm90s <- rbind(Perm90s, perm90)
+  perm95 <- perm.threshold(p.rs, 0.95)
+  Perm95s <- rbind(Perm95s, perm95)
+  perm99 <- perm.threshold(p.rs, 0.99)
+  Perm99s <- rbind(Perm99s, perm99)
+}
+
+Perm90s <- Perm90s %>%
+  filter(Dos != 123)
+Perm95s <- Perm95s %>%
+  filter(Dos != 123)
+Perm99s <- Perm99s %>%
+  filter(Dos != 123)
+
+```
+
+
+#### add phenotype column to threshold table ####
+```{r}
+# add phenotype column
+Perm90s.pheno <- cbind(Name, Perm90s)
+Perm95s.pheno <- cbind(Name, Perm95s)
+Perm99s.pheno <- cbind(Name, Perm99s)
+```
+
+
+#### compare observed data with permutation result ####
+```{r}
+corr.threshold <- function(threshold) {
+  if (threshold == 90) {
+    Perm90s.pheno
+  }
+  else if (threshold == 95) {
+    Perm95s.pheno
+  }
+  else if (threshold == 99) {
+    Perm99s.pheno
+  }
+  else {
+    return("Wrong threshold. The available thresholds are 90, 95, 99. Please try again! ")
+  }
+}
+
+threshold.select <- function(tval, threshold, Vari, i) {
+  if (threshold == 90) {
+    Th1 <- corr.threshold(90)[,Vari][i]
+    Th2 <- corr.threshold(95)[,Vari][i]
+    result <- tval %>%
+      filter(tval[,Vari] >= Th1 & tval[,Vari] < Th2)
+  }
+  else if (threshold == 95) {
+    Th1 <- corr.threshold(95)[,Vari][i]
+    Th2 <- corr.threshold(99)[,Vari][i]
+    result <- tval %>%
+      filter(tval[,Vari] >= Th1 & tval[,Vari] < Th2)
+  }
+  else if (threshold == 99) {
+    Th1 <- corr.threshold(99)[,Vari][i]
+    result <- tval %>%
+      filter(tval[,Vari] >= Th1)
+  }
+  return(result)
+}
+
+classify <- function(threshold) {
+  if (threshold == 90) {
+    return("Suggestive")
+  }
+  else if (threshold == 95) {
+    return("Significant")
+  }
+  else if (threshold == 99) {
+    return("Confirmed")
+  }
+}
+
+# single variable: only one column for t-values
+# column numbers: Marker, t-value, phenotype, class
+perm.compareone <- function(tval, threshold, Vari, i, pheno) {
+  sign <- threshold.select(tval, threshold, Vari, i)
+  if (nrow(sign) > 0) {
+    sign <- sign %>%
+      mutate(Phenotype = pheno, Sign.Class = classify(threshold))
+    sign.tvals <- cbind(sign[3], sign[1], sign[Vari], sign[4])
+    return(sign.tvals)
+  }
+}
+
+# multivariable: three columns for t-values
+# column numbers: Marker, Del, Nig, Dos, phenotype, class
+perm.comparemul <- function(tval, threshold, Vari, i, pheno) {
+  sign <- threshold.select(tval, threshold, Vari, i)
+  if (nrow(sign) > 0) {
+    sign <- sign %>%
+      mutate(Phenotype = pheno, Sign.Class = classify(threshold))
+    sign.tvals <- cbind(sign[5], sign[1], sign[Vari], sign[6])
+    return(sign.tvals)
+  }
+}
+
+```
+
+
+#### compare with observed data ####
+```{r}
+# Abstract marker names
+Markers <- as.data.frame(matrix(colnames(deltoides_gt)[-1], ncol = 1))
+
+# Prepare tibbles
+Sign.Dels <- tibble(Phenotype = c("Test"),
+                    Marker = c("Test"),
+                    Del = c(123), 
+                    Sign.Class = c(123))
+Sign.Nigs <- tibble(Phenotype = c("Test"),
+                    Marker = c("Test"),
+                    Nig = c(123), 
+                    Sign.Class = c(123))
+Sign.Doss <- tibble(Phenotype = c("Test"),
+                    Marker = c("Test"),
+                    Dos = c(123), 
+                    Sign.Class = c(123))
+
+# load all observed t-values
+# compare them with perm results
+for (i in 1:length(p.files.paths$filename)) {
+  obs.path <- paste("../perm/Dos/observed/Obs_", p.files.paths$phenotype[i], ".csv", sep = "")
+  obs.t <- read_csv(obs.path) %>%
+    as.data.frame()
+  obs.tvals <- cbind(Markers, obs.t)
+  colnames(obs.tvals)[1] <- "Marker"
+  colnames(obs.tvals)[2] <- "Dos"
+  # compare del
+  #sign.del90 <- perm.compareone(obs.tvals, 90, 2, i, Name[i])
+  #sign.del95 <- perm.compareone(obs.tvals, 95, 2, i, Name[i])
+  #sign.del99 <- perm.compareone(obs.tvals, 99, 2, i, Name[i])
+  #Sign.Dels <- rbind(Sign.Dels, sign.del90, sign.del95, sign.del99)
+  # compare nig
+  #sign.nig90 <- perm.compare(obs.tvals, 90, 2, i, Name[i])
+  #sign.nig95 <- perm.compare(obs.tvals, 95, 2, i, Name[i])
+  #sign.nig99 <- perm.compare(obs.tvals, 99, 2, i, Name[i])
+  #Sign.Nigs <- rbind(Sign.Nigs, sign.nig90, sign.nig95, sign.nig99)
+  # compare dos
+  sign.dos90 <- perm.compare(obs.tvals, 90, 2, i, Name[i])
+  sign.dos95 <- perm.compare(obs.tvals, 95, 2, i, Name[i])
+  sign.dos99 <- perm.compare(obs.tvals, 99, 2, i, Name[i])
+  Sign.Doss <- rbind(Sign.Doss, sign.dos90, sign.dos95, sign.dos99)
+}
+Sign.Dels <- Sign.Dels %>%
+  filter(Phenotype != "Test")
+Sign.Nigs <- Sign.Nigs %>%
+  filter(Phenotype != "Test")
+Sign.Doss <- Sign.Doss %>%
+  filter(Phenotype != "Test")
+Sign.Dels
+Sign.Nigs
+Sign.Doss
+```
+
+
+#### save results ####
+```{r}
+write_csv(Sign.Dels, "../perm/Del/Significant/Sign_Dels_20221027.csv")
+write_csv(Sign.Nigs, "../perm/Nig/Significant/Sign_Nigs_20221101.csv")
+write_csv(Sign.Doss, "../perm/Dos/Significant/Sign_Doss_20221103.csv")
+```
+
+
+
+#### plot ####
+```{r}
+perm90.df <- as.data.frame(t(perm90)) %>%
+  pivot_longer(everything(), names_to = "variable", values_to = "perm.threshold")
+perm95.df <- as.data.frame(t(perm95)) %>%
+  pivot_longer(everything(), names_to = "variable", values_to = "perm.threshold")
+perm99.df <- as.data.frame(t(perm99)) %>%
+  pivot_longer(everything(), names_to = "variable", values_to = "perm.threshold")
+
+
+#tvals.man <- obs.tvals %>%
+  #mutate(CHR = as.numeric(str_replace(string = Marker, pattern = "(...)(..)_(.*)_(.*)",replacement = "\\2"))) %>%
+ # mutate(BP = as.numeric(str_replace(string = Marker, pattern = "(...)(..)_(.*)_(.*)", replacement = "\\3")))
+
+# del
+ggplot(obs.tvals, aes(x=Marker, y=Del)) +
+  geom_point() +
+  geom_hline(aes(yintercept = perm90.df$perm.threshold[1])) +
+  geom_hline(aes(yintercept = perm95.df$perm.threshold[1]))
+
+ggsave(paste("../perm/DND/plot/", name, "_del", ".png", sep = ""), width = 7, height = 4, dpi = 72)
+
+# nig
+ggplot(obs.tvals, aes(x=Marker, y=Nig)) +
+  geom_point() +
+  geom_hline(aes(yintercept = perm90.df$perm.threshold[2])) +
+  geom_hline(aes(yintercept = perm95.df$perm.threshold[2]))
+
+ggsave(paste("../perm/DND/plot/", name, "_nig", ".png", sep = ""), width = 7, height = 4, dpi = 72)
+
+# dos
+ggplot(obs.tvals, aes(x=Marker, y=Dos)) +
+  geom_point() +
+  geom_hline(aes(yintercept = perm90.df$perm.threshold[3])) +
+  geom_hline(aes(yintercept = perm95.df$perm.threshold[3]))
+
+ggsave(paste("../perm/DND/plot/", name, "_dos", ".png", sep = ""), width = 7, height = 4, dpi = 72)
+```
+
