@@ -1,4 +1,5 @@
-# CADVIP: Characterize allelic and dosage variation in _Populus_ #
+# CADVIP 
+# Characterize allelic and dosage variation in _Populus_ #
 
 ## Introduction ##
 This repository includes all the data and scripts for CADVIP project.  
