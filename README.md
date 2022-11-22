@@ -2,8 +2,11 @@
 
 ## Introduction ##
 This repository includes all the data and scripts for CADVIP project.  
+
 CADVIP (Characterize allelic and dosage variation in _Populus_) is the project for understanding the contribution of allelic variation and copy number variation on phenotypic outcomes in _Populus_.  
+
 The initial _Populus_ population for this project was established and [published](https://pubmed.ncbi.nlm.nih.gov/26320226/) previously. Specifically, a wild-type egg cell from _Populus deltoides_ (female) is crossed with gamma-radiated pollen from _Populus nigra_ (male). Their F1 hybrids (~600 individuals) were collected and sent for Illumina short-read sequencing. The sequencing results indicate 52% of lines include large-scale deletions or insertions (indels) on the genome. The summary of these indels cover the 99% of _Populus_ genome. This becomes an excellent system for studying the interactive contribution of alleles and copy number states.  
+
 To perform our experiment, we need both genotypes and phenotypes.  
 1. Phenotypes are collected previously.  
 2. Genotypes include two aspects: **Allele** and **Dosage**  
@@ -30,23 +33,36 @@ The working process is:
 #### SNPs selection ####
 We get SNPs for _P. deltoides_ and _P. nigra_ respectively. The selected SNPs should be able to define which Haplotype does F1 hybrids inherited from the targeting parent. For example, if we are focusing on _P. nigra_ haplotypes, the available SNPs can be:  
 
-|SNP.Name|F1    |F2      |M1    |M2     |
-|:-------|:-----|:-------|:-----|:------|
-|SNP1    |A     |A       |A     |T      |
-|SNP2    |A     |C       |A     |T      |
-|SNP3    |A     |C       |G     |T      |
+|SNP.Name|M1    |M2      |F1    |F2     |Category        |
+|:-------|:-----|:-------|:-----|:------|:---------------|
+|SNP1    |A     |T       |A     |A      |M-Het+F-Homo    |
+|SNP2    |A     |C       |A     |T      |M-Het+F-diffHet |
+|SNP3    |A     |C       |G     |T      |M-Het+F-diffHet |
 
 Similar selecting criteria can also be applied to _P. deltoides_.
 
 The sequencing dataset for SNPs selection:
 1. _P. deltoides_ and _P. nigra_ genomic sequencing data (Illumina paired-end sequencing, 45x read depth).
-2. SNPs between _P. deltoides_ and _P. nigra_.
 
-The programming process for SNPs selection:
-1.
-
+The programming process for SNPs selection:  
+1. [Generate mpileup file](https://github.com/Comai-Lab/mpileup-tools).
+  - Input: sorted.bam files for parental lines prepared for SNPs selection.  
+  - Output: a parsed-mpileup file contains three parent lines: SO5465L (female1), SO5985L (female2), SO3615L (male1).  
+2. [Select available SNPs](https://github.com/guoweier/CADVIP/blob/main/Phasing/scripts/SNP_3parents_4list.py)
+  - Input: parsed-mpileup file from step1.
+  - Output: Four lists:
+    - List1: SO3615L-Homo/diffHet + SO5465L-Het.  
+    - List2: SO3615L-Homo/diffHet + SO5985L-Het.  
+    - List3: SO3615L-Het + SO5465L-Homo/diffHet.  
+    - List4: SO3615L-Het + SO5985L-Homo/diffHet.  
+  - Running example:  
+  ```
+  $ python SNP_3parents_4list.py -f parsed-mpileup-file.txt
+  ```
+  
 
 #### Phasing ####
+We used a subset of F1 lines (166/592) which contain RNA-seq dataset to decide the candidate haplotype combinations between adjacent SNPs.  
 
 
 ### Genotyping ###
