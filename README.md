@@ -21,11 +21,30 @@ Our goal is to investigate the _P. deltoides_ alleles contribution and _P. nigra
 We aimed to get haplotypes for _P. deltoides_ and _P. nigra_. We would finally get two haplotype pairs:  
 1. _P. deltoides_ 1 (D1) and _P. deltoides_ 2 (D2)  
 2. _P. nigra_ 1 (N1) and _P. nigra_ 2 (N2)  
+
 The working process is:  
 1. Select the available SNPs for each parent haplotype.  
 2. Use 122 RNA-seq F1 hybrids to phase the haplotype.  
 
+
 #### SNPs selection ####
+We get SNPs for _P. deltoides_ and _P. nigra_ respectively. The selected SNPs should be able to define which Haplotype does F1 hybrids inherited from the targeting parent. For example, if we are focusing on _P. nigra_ haplotypes, the available SNPs can be:  
+
+|SNP.Name|F1    |F2      |M1    |M2     |
+|:-------|:-----|:-------|:-----|:------|
+|SNP1    |A     |A       |A     |T      |
+|SNP2    |A     |C       |A     |T      |
+|SNP3    |A     |C       |G     |T      |
+
+Similar selecting criteria can also be applied to _P. deltoides_.
+
+The sequencing dataset for SNPs selection:
+1. _P. deltoides_ and _P. nigra_ genomic sequencing data (Illumina paired-end sequencing, 45x read depth).
+2. SNPs between _P. deltoides_ and _P. nigra_.
+
+The programming process for SNPs selection:
+1.
+
 
 #### Phasing ####
 
