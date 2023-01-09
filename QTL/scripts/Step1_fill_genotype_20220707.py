@@ -1,7 +1,8 @@
 # Weier Guo Python
-# 07/07/2022
+# 07/07/2022 created
 # 09/17/2022 updated: remove alleles which belongs to the skipped add-on markers because of the adjacency of two original markers. 
 # 11/15/2022 updated: F1 genotype does not have marker numbers row. Remove the first header reading for F1 genotypes. 
+
 
 import os, sys, math
 from optparse import OptionParser
@@ -45,10 +46,12 @@ def knit_lists(a,b):
 def get_allele(a,b):
 	if a == b:
 		new = str(a) 
-	elif a == "NA" or b == "NA":
-		new = "NA"
+	elif a == "NA" and b != "NA":
+		new = b 
+	elif a != "NA" and b == "NA":
+		new = a 
 	else:
-		new = "1.5"
+		new = "NA"
 	return new
 
 

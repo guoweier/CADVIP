@@ -1,0 +1,126 @@
+---
+title: "F1_visualization"
+author: "Weier Guo"
+date: '2022-12-02'
+output: html_document
+---
+
+# Introduction #
+This script is aimed to visualize QTLs for F1 genomic sequenced lines.
+The significant QTLs are very narrow after QTL mapping for F1 genomic samples. 
+To identify the curve of QTLs, we decide to visualize the observed data. 
+
+
+## data and library import ##
+### library ###
+```{r}
+library(tidyverse)
+library(ggplot2)
+```
+
+### observed data ###
+```{r}
+observed <- read_csv("../F1_450/DND/observed/Obs_PC4_y1_y2.csv") %>%
+  as.data.frame()
+observed
+```
+
+
+### permutation data ###
+```{r}
+perm <- read_csv("../F1_450/DND/permutation/Perm_PC4_y1_y2.csv") %>%
+  as.data.frame()
+perm
+```
+
+### import markers ###
+```{r}
+deltoides.gt <- read_tsv("../F1_450/genotype/Pdeltoides_F1_nigraGeno_20221120.txt") %>%
+  as.data.frame()
+markers <- colnames(deltoides.gt)[-1]
+```
+
+
+## calculate threshold ##
+### multivariate ###
+```{r}
+# function to collect permutation threshold
+perm.threshold <- function(rs, ts) {
+  apply(rs, 1, quantile, ts, na.rm = TRUE)
+}
+```
+
+```{r}
+# apply function for each imported permutation results, and collect them
+Perm90s <- tibble(Del = c(123),
+                  Nig = c(123),
+                  Dos = c(123))
+Perm95s <- tibble(Del = c(123),
+                  Nig = c(123),
+                  Dos = c(123))
+Perm99s <- tibble(Del = c(123),
+                  Nig = c(123),
+                  Dos = c(123))
+Name <- "PC4_y1_y2"
+
+perm90 <- perm.threshold(perm, 0.90)
+Perm90s <- rbind(Perm90s, perm90)
+perm95 <- perm.threshold(perm, 0.95)
+Perm95s <- rbind(Perm95s, perm95)
+perm99 <- perm.threshold(perm, 0.99)
+Perm99s <- rbind(Perm99s, perm99)
+
+Perm90s <- Perm90s %>%
+  filter(Del != 123)
+Perm95s <- Perm95s %>%
+  filter(Del != 123)
+Perm99s <- Perm99s %>%
+  filter(Del != 123)
+```
+
+### add phenotype name ###
+```{r}
+Perm90s.pheno <- cbind(Name, Perm90s)
+Perm95s.pheno <- cbind(Name, Perm95s)
+Perm99s.pheno <- cbind(Name, Perm99s)
+```
+
+
+## sort markers with QTL t-values ##
+```{r}
+Del.QTL <- tibble(Markers = markers, Del = observed$Del)
+Del.QTL %>%
+  arrange(desc(Del))
+```
+
+
+## visualization ##
+### t-value visualization ###
+```{r}
+trans.perm <- t(perm) %>%
+  as.data.frame()
+ggplot(trans.perm, aes(x=trans.perm[,1])) +
+  geom_histogram(bins = 50)
+```
+
+
+### QTL curve ###
+```{r}
+tibble(marker = 1:nrow(observed), Del = observed$Del) %>%
+  ggplot(aes(x = marker, y = Del)) +
+  geom_point() +
+  geom_hline(yintercept = Perm90s$Del, color="red")
+```
+
+
+
+
+
+
+
+
+
+
+
+
+

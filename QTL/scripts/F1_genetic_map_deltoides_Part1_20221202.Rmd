@@ -1,0 +1,377 @@
+---
+title: "F1_genetic_map_Part1"
+author: "Weier Guo"
+date: '2022-12-02'
+output: html_document
+---
+
+
+# Introduction #
+This script is aimed to confirm the genetic map with F1 genomic lines. 
+The previous genetic map were established with RNA-seq lines (122 samples). After genotyping for F1 genomic lines (343 samples), we have to confirm the genetic map again. Make sure there are no weird recombination on the haplotypes. 
+
+
+# import data and library #
+## library ##
+```{r}
+library(tidyverse)
+library(ggplot2)
+library(qtl)
+library(formattable)
+library(emmeans)
+```
+
+## generate crosss.read file ##
+```{r}
+# phenotype
+leaf <- read_tsv("../../Kmer/input/pheno_leaf_20220527.txt") 
+leaf
+# genotype
+deltoides.gt <- read_tsv("../F1_450/genotype/Pdeltoides_F1_geneticMap_geno_20221206.txt") %>%
+  as.data.frame()
+deltoides.gt
+```
+
+
+
+
+# new marker name
+## apply the function to genotypes
+```{r}
+# deltoides
+del.marker <- colnames(deltoides.gt)[-1]
+
+del.Chroms <- c()
+del.Markers.New <- c()
+j <- 1
+for (i in 1:length(del.marker)) {
+  m <- del.marker[i]
+  chrom <- as.numeric(str_replace(string = m, pattern = "Chr(..)_(.*)_(.*)", replacement = "\\1"))
+  if (! (chrom %in% del.Chroms)) {
+      del.Chroms <- c(del.Chroms, chrom)
+      j <- 1
+  }
+  marker.n <- paste(as.character(chrom), as.character(j), sep = "_")
+  del.Markers.New <- c(del.Markers.New, marker.n)
+  j = j+1
+}
+
+del.Markers.New
+```
+
+
+## replace the colnames for genotypes
+```{r}
+# deltoides
+Markers.New.Samp <- c("Old.Name",Markers.New)
+colnames(deltoides.gt) <- Markers.New.Samp
+deltoides.gt
+```
+
+
+## save file for old and new marker names 
+```{r}
+del.marker.Samp <- c("Ori.Name", del.marker)
+Marker.names <- tibble(Ori_Marker = del.marker.Samp,
+                       New_Marker = Markers.New.Samp)
+write_csv(Marker.names, "../F1_450/genotype/Pdeltoides_F1_geneticMap_MarkerName_20221206.csv")
+```
+
+
+# phenotype selection #
+## import available phenotypes ##
+```{r}
+leaf.list <- read_csv("../input/Leaf_pheno_20220824.csv")
+leaf.list
+```
+
+
+```{r}
+leaf.new <- tibble(leaf$Old.Name)
+for (i in 1:length(leaf.list$V1)) {
+  pheno.name <- leaf.list$V1[i]
+  indice <- which(colnames(leaf) == pheno.name)
+  leaf.new <- cbind(leaf.new, leaf[,indice])
+}
+colnames(leaf.new)[1] <- "Old.Name"
+leaf.new
+```
+
+# add pheno and geno #
+## P.deltoides ##
+```{r}
+deltoides.geno.pheno <- left_join(deltoides.gt, leaf.new, by= "Old.Name") %>%
+  select(1,532:587, everything())
+deltoides.geno.pheno
+```
+
+# create chromosome number row #
+```{r}
+markers <- colnames(deltoides.geno.pheno)[58:587]
+Chroms <- c()
+for (i in 1:length(markers)) {
+  marker <- markers[i]
+  chrom = as.numeric(str_replace(string = marker, pattern = "(.*)_(.*)", replacement = "\\1"))
+  Chroms <- c(Chroms, chrom)
+}
+pheno.na <- rep(NA, 57)
+Chroms <- c(pheno.na, Chroms)
+```
+
+# add chromosome number into the bulk table
+```{r}
+# deltoides
+deltoides.geno.pheno.chr <- rbind(Chroms, deltoides.geno.pheno) 
+deltoides.geno.pheno.chr
+```
+
+# save files #
+```{r}
+write_csv(deltoides.geno.pheno.chr, "../F1_450/genotype/Genetic_map_deltoides_20221206.csv")
+```
+
+
+
+# Genetic Map Construction #
+# load cross.read data #
+```{r}
+genetic <- read.cross(format = "csv", dir = "../F1_450/genotype/", file = "Genetic_map_deltoides_20221206.csv", na.strings = c("NA"), alleles = c("D1","D2"), genotypes = c("D1N","D2N"))
+```
+
+# omit individuals and markers with lots of missing data #
+## summary ##
+```{r}
+summary(genetic)
+```
+
+## plot missing genotypes
+```{r}
+plotMissing(genetic)
+```
+
+## plot genotype number by individual and by marker
+```{r}
+#genetic
+par(mfrow=c(2,1), las=1)
+plot(ntyped(genetic), ylab="No. typed markers", main="No. genotypes by individual")
+plot(ntyped(genetic, "mar"), ylab = "No. typed individuals", main = "No. genotypes by marker")
+```
+
+There are several markers that were not fully genotyped. We can omit these markers.
+```{r}
+#genetic
+nt.bymarg <- ntyped(genetic, "mar")
+todropg <- names(nt.bymarg[nt.bymarg < 100])
+genetic <- drop.markers(genetic, todropg)
+```
+
+
+# identify duplicate individuals
+```{r}
+cg <- comparegeno(genetic)
+hist(cg[lower.tri(cg)], breaks = seq(0,1, len=101), xlab = "No. matching genotypes")
+rug(cg[lower.tri(cg)])
+```
+
+As shown in the figure above, a pair of F1 siblings typically share genotypes at 50% of the markers. The most common sharing of genotypes does not exceed 80% (about 70%+). Let us look at what these samples are. 
+
+# Look for markers with distorted segregation patterns #
+We study the segregation patterns of the markers. Since this is a "backcross", we expect the genotypes to appear with the frequencies 1:1. 
+```{r}
+gt <- geno.table(genetic)
+gt[gt$P.value < 0.05/totmar(genetic),]
+```
+
+It would be best to omit the worst of these markers.
+```{r}
+todrop <- rownames(gt[gt$P.value < 1e-4,])
+genetic <- drop.markers(genetic, todrop)
+```
+
+
+# Study individuals' genotype frequencies
+We expect the individuals to have genotype frequencies that are in approximately 1:1 proportions. 
+```{r}
+g <- pull.geno(genetic)
+gfreq <- apply(g, 1, function(a) table(factor(a, levels = 1:3)))
+gfreq <- t(t(gfreq) / colSums(gfreq))
+par(mfrow=c(1,2), las=1)
+for (i in 1:2) {
+  plot(gfreq[i,], ylab = "Genotype frequency", main = c("D1N", "D2N")[i], ylim = c(0,1))
+}
+```
+
+
+# Study pairwise marker linkages, look for switched alleles
+```{r}
+genetic <- est.rf(genetic)
+```
+
+
+The Warning Message indicates the markers with likely switched alleles. This is indicated through pairs of markers that are strongly indicated to be associated but have estimated recombination fractions >> 1/2. 
+
+```{r}
+checkAlleles(genetic, threshold= 5)
+```
+
+The final column, diff.in.max.LOD, is the difference between the maximum LOD score for the cases where the estimated recombination fraction is > 1/2 and the maximum LOD score for the cases where the estimated recombination fraction is < 1/2. A plot of the LOD scores against the estimated recombination fractions for all marker pairs.
+
+```{r}
+#genetic
+rfg <- pull.rf(genetic)
+lodg <- pull.rf(genetic, what = "lod")
+plot(as.numeric(rfg), as.numeric(lodg), xlab = "Recombination fraction of genetic", ylab = "LOD score")
+```
+
+As seen in the figure above, there are many marker pairs with large LOD scores but estimated recombination fractions >> 1/2. The solution to this problem is to form initial linkage groups, ensuring that markers with rf > 1/2 are placed in different groups. If all goes well, each chromosome will come our as a pair of linkage groups: one containing markers with correct alleles and another containing markers with switched alleles. 
+
+# Linkage group analysis #
+## function: linkage group analysis ##
+```{r}
+LGAnalysis = function(cross, plist, analysis_name) {
+  if(analysis_name != ""){
+    analysis_name = paste0("_", analysis_name)
+  }
+  foldername = paste0("LinkageGroup_Analysis", analysis_name)
+  if(dir.exists(paste0(foldername,"/")) == FALSE){
+    dir.create(foldername)
+  }
+  otable = matrix(nrow=100, ncol=length(plist))
+  name = c()
+  for (i in 1:length(plist)){
+    name[i] = paste(paste('p', i, sep=''), plist[[i]][1], plist[[i]][2], sep='_')
+    lg = formLinkageGroups(cross, max.rf=plist[[i]][1], min.lod=plist[[i]][2])
+    assign(name[i], lg)
+    otable[,i] = as.vector(table(lg[,2])[1:100])
+    #write.csv(get(name[i]), paste0(foldername, "/", name[i], ".csv"))
+  }
+  colnames(otable) = name
+  #write.csv(otable, paste0(foldername, "/","LinkageGroup_Analysis", analysis_name, ".csv"))
+  D1 = otable
+}
+```
+
+
+## list of parameters to test
+```{r}
+plist = list( c(0.3,10), c(0.3,20), c(0.3,30),
+              c(0.25,10), c(0.25,20), c(0.25,30),
+              c(0.2,10), c(0.2,20), c(0.2,30),
+              c(0.15,10), c(0.15,20), c(0.15,30),
+              c(0.1,10), c(0.1,20), c(0.1,30), 
+              c(0.08,10), c(0.08,20), c(0.08,30), 
+              c(0.06,10), c(0.06,20), c(0.06,30))
+```
+
+
+## run analysis with parameters ##
+```{r}
+lg_analysis = LGAnalysis(genetic, plist, "")
+```
+
+
+## Constant max.rf but varing min.lod results ##
+```{r}
+formattable(as.data.frame(lg_analysis[1:25, 1:3]), align="c")
+```
+
+
+## Constant min.lod but varying max.rf results
+```{r}
+formattable(as.data.frame(lg_analysis[1:25, seq(1,length(plist),by=3)]), align="c")
+```
+
+## Conclusion to linkage group analysis
+The final parameters selected are max.rf = 0.25, min.lod = 10
+```{r}
+lg <- formLinkageGroups(genetic, max.rf = 0.25, min.lod = 10)
+table(lg[,2])
+```
+
+
+# Form Linkage Groups #
+## Create directory to store results ##
+```{r}
+if (dir.exists("../F1_450/New_LinkageGroups/") == FALSE) {
+  dir.create("../F1_450/New_LinkageGroups")
+}
+```
+
+
+## Reorganize the markers into inferred linkage groups ##
+```{r}
+Pdeltoides_gmap <- formLinkageGroups(genetic, max.rf = 0.25, min.lod = 10, reorgMarkers = TRUE)
+```
+
+
+## Remove markers ##
+```{r}
+rm_unlinked = markernames(Pdeltoides_gmap, chr = seq(20, nchr(Pdeltoides_gmap),by=1))
+Pdeltoides_gmap = drop.markers(Pdeltoides_gmap, markers = c(rm_unlinked))
+```
+
+## Rename linkage groups to chromosomes
+### function: split marker names ###
+```{r}
+SplitMrkname = function(mrkname) {
+  mrk_info = c()
+  mrk_info[1] = strsplit(x=mrkname, split = "_")[[1]][1] #chromosome number
+  mrk_info[2] = strsplit(x=mrkname, split = "_")[[1]][2] #marker bin start
+  mrk_info
+}
+```
+
+### rename linkage groups
+```{r}
+#create table
+lg_names = names(Pdeltoides_gmap$geno)
+gmap_key = as.data.frame(matrix(nrow = length(lg_names), ncol = 2))
+pivot = data.frame("NewChr"=character(), "OldChr"=character(), "Count"=integer(), stringsAsFactors = FALSE)
+colnames(gmap_key) = c("Chr", "LG")
+pivot_row = 1
+for (i in 1:length(lg_names)) {
+  counter = c()
+  lg_markers = names(Pdeltoides_gmap[["geno"]][[i]][["map"]])
+  for (j in 1:length(lg_markers)) {
+    counter[j] = SplitMrkname(lg_markers[j])[1]
+  }
+  tally_chr = sort(table(counter), decreasing = TRUE)
+  gmap_key$Chr[i] = names(tally_chr)[1] #New chromosome is the most prevalent
+  print(i)
+  print(tally_chr)
+  for (j in 1:length(table(counter))) {
+    pivot[pivot_row,] = c(gmap_key$Chr[i], names(tally_chr[j]), unname(tally_chr[j]))
+    pivot_row = pivot_row+1
+  }
+  gmap_key$LG[i] = lg_names[i]
+}
+```
+
+### save files ###
+```{r}
+write.csv(gmap_key, "../F1_450/New_LinkageGroups/MapKey.csv")
+write.csv(pivot, "../F1_450/New_LinkageGroups/MapPivot.csv")
+```
+
+### show results in table ###
+```{r}
+formattable(pivot, row.names=TRUE, align="c", colnames=c("New Chromosome", "Old Chromosome", "Count"))
+```
+
+
+### name chromosomes
+```{r}
+names(Pdeltoides_gmap$geno) = gmap_key$Chr
+```
+
+### recombination plot ###
+```{r}
+plotRF(Pdeltoides_gmap)
+```
+
+
+# Save dataset #
+```{r}
+save.image("../F1_450/New_LinkageGroups/Pdeltoides_GeneticMap_Part1_20221206.RData")
+```
+

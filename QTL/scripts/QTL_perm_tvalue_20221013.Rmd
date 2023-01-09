@@ -31,13 +31,13 @@ library(lme4)
 ```
 
 dataset
-```{r}
+```{r,eval=FALSE}
 # genotypes
-nigra_gt <- read_tsv("../output/Pnigra_genome_marker_20220917.txt") %>%
+nigra_gt <- read_tsv("/cato2pool/weier-poplar/F1_genotypes/bam/Pnigra_F1_delGeno_imputed_conMk_20230108.txt") %>%
   as.data.frame()
-deltoides_gt <- read_tsv("../output/Pdeltoides_nigraMarker_20220930.txt") %>%
+deltoides_gt <- read_tsv("/cato2pool/weier-poplar/F1_genotypes/bam/Pdeltoides_F1_nigraGeno_sparsed_20221213.txt") %>%
   as.data.frame()
-dosage_gt <- read_tsv("../output/Dosage_nigraMarker_20220917.txt") %>%
+dosage_gt <- read_tsv("/cato2pool/weier-poplar/F1_genotypes/bam/Dosage_F1_nigraGeno_sparsed_20221213.txt") %>%
   as.data.frame()
 nigra_gt
 deltoides_gt
@@ -45,10 +45,10 @@ dosage_gt
 ```
 
 
-```{r}
+```{r,eval=FALSE}
 # phenotypes
-biomass <- read_tsv("../../Kmer/input/pheno_output_table_blup_20220428.txt")
-leaf <- read_tsv("../../Kmer/input/pheno_leaf_20220527.txt")
+biomass <- read_csv("/cato2pool/weier-poplar/F1_genotypes/bam/Biomass_pheno_343_20230109.csv")
+leaf <- read_csv("/cato2pool/weier-poplar/F1_genotypes/bam/Leaf_pheno_343_20230109.csv")
 vessel <- read_csv("../../Kmer/input/pheno_vessel_20220522.csv")
 biomass
 leaf
@@ -59,12 +59,12 @@ vessel
 #### phenotype adjustment ####
 ```{r}
 # select adjustable phenotypes for leaf
-leaf.list <- read_csv("../input/Leaf_pheno_20220824.csv")
+leaf.list <- read_csv("/cato2pool/weier-poplar/QTL/Leaf_pheno_20220824.csv")
 leaf.list
 ```
 
 
-```{r}
+```{r,eval=FALSE}
 leaf.new <- tibble(leaf$Old.Name)
 for (i in 1:length(leaf.list$V1)) {
   pheno.name <- leaf.list$V1[i]
@@ -76,9 +76,9 @@ leaf.new
 ```
 
 #### extract phenotypes for RNA-seq samples ####
-```{r}
-leaf.rna <- as.data.frame(left_join(nigra_gt, leaf.new, by = "Old.Name")[c(1,959:1014)])
-leaf.rna
+```{r,eval=FALSE}
+leaf.F1 <- as.data.frame(left_join(nigra_gt, leaf.new, by = "Old.Name")[c(1,451:506)])
+leaf.F1
 ```
 
 
@@ -89,19 +89,22 @@ leaf.rna
 # single variable 
 qtlscanone <- function(y, m1) {
   Tvalue.res <- tibble(Var = c("Test"),
-                   Tvalue = c(0))
+                   Tvalue = c(0),
+                   Rsquared = c(0))
   for (i in 1:ncol(m1)) {
     m <- summary(lm(y ~ m1[,i]))
     tvalue <- abs(m$coefficients[-1,3])
     if (length(tvalue) < 1) {
       tvalue <- c(tvalue, NA)
     }
-    Tvalue <- c(i, tvalue)
+    # get r-squared
+    rsq <- m$adj.r.squared * 100
+    Tvalue <- c(i, tvalue, rsq)
     Tvalue.res <- rbind(Tvalue.res, Tvalue)
   }
   Tvalue.res <- Tvalue.res %>%
     filter(Var != "Test") %>%
-    select(Tvalue)
+    select(Tvalue, Rsquared)
   return(Tvalue.res)
 }
 ```
@@ -113,7 +116,8 @@ qtlscan <- function(y, m1, m2, m3) {
   Tvalue.res <- tibble(Var = c("Test"),
                    Del = c(0), 
                    Nig = c(0),
-                   Dos = c(0))
+                   Dos = c(0),
+                   Rsquared = c(0))
   for (i in 1:ncol(m1)) {
     m <- summary(lm(y ~ m1[,i] + m2[,i] + m3[,i])) 
     tvalue <- abs(m$coefficients[-1,3])
@@ -123,22 +127,24 @@ qtlscan <- function(y, m1, m2, m3) {
         tvalue <- c(tvalue, NA)
       }
     } 
-    Tvalue <- c(i, tvalue)
+    # get r-squared
+    rsq <- m$adj.r.squared * 100
+    Tvalue <- c(i, tvalue, rsq)
     Tvalue.res <- rbind(Tvalue.res, Tvalue)
   }
   Tvalues.res <- Tvalue.res %>%
     filter(Var != "Test") %>%
-    select(Del, Nig, Dos)
+    select(Del, Nig, Dos, Rsquared)
   return(Tvalues.res)
 }
 ```
 
 #### record t values for each marker ####
-```{r}
+```{r, eval=FALSE}
 for (j in 2:57) {
-  observed.t <- qtlscan(leaf.rna[,j], deltoides_gt[,-1], nigra_gt[,-1], dosage_gt[,-1])
-  name <- str_replace(string = colnames(leaf.rna)[j], pattern = "Blup_Transfo_(.*)", replacement = "\\1")
-  write_csv(observed.t, paste("../perm/DND/observed/Obs_", name, ".csv", sep = ""))
+  observed.t <- qtlscan(leaf[,j], deltoides_gt[,-1], nigra_gt[,-1], dosage_gt[,-1])
+  name <- str_replace(string = colnames(leaf)[j], pattern = "Blup_Transfo_(.*)", replacement = "\\1")
+  write_csv(observed.t, paste("/cato2pool/weier-poplar/F1_genotypes/perm/DND/delGeno/leaf/observed/Obs_", name, ".csv", sep = ""))
 }
 #obs.t.matrix <- as.matrix(observed.t)
 #obs.t.matrix
@@ -150,19 +156,19 @@ This step should be run on server.
 n.perm <- 1000
 
 for (j in 2:57) {
-  print(colnames(leaf.rna)[j])
+  print(colnames(leaf)[j])
   perm.results <- sapply(1:n.perm, function(p) {
     # check running status
     if (p %% 100 == 0) {
       print(p)
       }
     # apply qtlscan
-    t <- qtlscan(sample(leaf.rna[,j]), deltoides_gt[,-1], nigra_gt[,-1], dosage_gt[,-1]) # "sample" does permutation, resorting the phenotypes at each permutation.
+    t <- qtlscan(sample(leaf[,j]), deltoides_gt[,-1], nigra_gt[,-1], dosage_gt[,-1]) # "sample" does permutation, resorting the phenotypes at each permutation.
     apply(t, 2, max, na.rm = TRUE)
     })
   perm.df <- as.data.frame(perm.results)
-  name <- str_replace(string = colnames(leaf.rna)[j], pattern = "Blup_Transfo_(.*)", replacement = "\\1")
-  write_csv(perm.df, paste("../perm/DND/permutation/Perm_", name, ".csv", sep = ""))
+  name <- str_replace(string = colnames(leaf)[j], pattern = "Blup_Transfo_(.*)", replacement = "\\1")
+  write_csv(perm.df, paste("/cato2pool/weier-poplar/F1_genotypes/perm/DND/delGeno/leaf/permutation/Perm_", name, ".csv", sep = ""))
 }
 
 
@@ -175,9 +181,9 @@ Then, set a loop to calculate the threshold for each phenotype.
 
 #### prepare table to import all permutation results ####
 ```{r}
-p.files <- tibble(filename = list.files("../perm/Dos/permutation/"))
+p.files <- tibble(filename = list.files("../F1_450/Nig/permutation/"))
 p.files.paths <- p.files %>%
-  mutate(filepath = paste("../perm/Dos/permutation/", filename, sep = "")) %>%
+  mutate(filepath = paste("../F1_450/Nig/permutation/", filename, sep = "")) %>%
   mutate(phenotype = str_replace(string = filename, pattern = "Perm_(.*).csv", replacement = "\\1"))
 p.files.paths
 ```
@@ -234,9 +240,9 @@ perm.threshold <- function(rs, ts) {
 
 ```{r}
 # apply function for each imported permutation results, and collect them
-Perm90s <- tibble(Dos = c(123))
-Perm95s <- tibble(Dos = c(123))
-Perm99s <- tibble(Dos = c(123))
+Perm90s <- tibble(Del = c(123))
+Perm95s <- tibble(Del = c(123))
+Perm99s <- tibble(Del = c(123))
 Name <- c()
 
 for (i in 1:length(p.files.paths$filename)) {
@@ -251,11 +257,11 @@ for (i in 1:length(p.files.paths$filename)) {
 }
 
 Perm90s <- Perm90s %>%
-  filter(Dos != 123)
+  filter(Del != 123)
 Perm95s <- Perm95s %>%
-  filter(Dos != 123)
+  filter(Del != 123)
 Perm99s <- Perm99s %>%
-  filter(Dos != 123)
+  filter(Del != 123)
 
 ```
 
@@ -368,27 +374,29 @@ Sign.Doss <- tibble(Phenotype = c("Test"),
 # load all observed t-values
 # compare them with perm results
 for (i in 1:length(p.files.paths$filename)) {
-  obs.path <- paste("../perm/Dos/observed/Obs_", p.files.paths$phenotype[i], ".csv", sep = "")
+  obs.path <- paste("../F1_450/Nig/observed/Obs_", p.files.paths$phenotype[i], ".csv", sep = "")
   obs.t <- read_csv(obs.path) %>%
     as.data.frame()
   obs.tvals <- cbind(Markers, obs.t)
   colnames(obs.tvals)[1] <- "Marker"
-  colnames(obs.tvals)[2] <- "Dos"
+  #colnames(obs.tvals)[2] <- "Del"
+  colnames(obs.tvals)[2] <- "Nig"
+  #colnames(obs.tvals)[4] <- "Dos"
   # compare del
-  #sign.del90 <- perm.compareone(obs.tvals, 90, 2, i, Name[i])
-  #sign.del95 <- perm.compareone(obs.tvals, 95, 2, i, Name[i])
-  #sign.del99 <- perm.compareone(obs.tvals, 99, 2, i, Name[i])
+  #sign.del90 <- perm.comparemul(obs.tvals, 90, 2, i, Name[i])
+  #sign.del95 <- perm.comparemul(obs.tvals, 95, 2, i, Name[i])
+  #sign.del99 <- perm.comparemul(obs.tvals, 99, 2, i, Name[i])
   #Sign.Dels <- rbind(Sign.Dels, sign.del90, sign.del95, sign.del99)
   # compare nig
-  #sign.nig90 <- perm.compare(obs.tvals, 90, 2, i, Name[i])
-  #sign.nig95 <- perm.compare(obs.tvals, 95, 2, i, Name[i])
-  #sign.nig99 <- perm.compare(obs.tvals, 99, 2, i, Name[i])
-  #Sign.Nigs <- rbind(Sign.Nigs, sign.nig90, sign.nig95, sign.nig99)
+  sign.nig90 <- perm.compareone(obs.tvals, 90, 2, i, Name[i])
+  sign.nig95 <- perm.compareone(obs.tvals, 95, 2, i, Name[i])
+  sign.nig99 <- perm.compareone(obs.tvals, 99, 2, i, Name[i])
+  Sign.Nigs <- rbind(Sign.Nigs, sign.nig90, sign.nig95, sign.nig99)
   # compare dos
-  sign.dos90 <- perm.compare(obs.tvals, 90, 2, i, Name[i])
-  sign.dos95 <- perm.compare(obs.tvals, 95, 2, i, Name[i])
-  sign.dos99 <- perm.compare(obs.tvals, 99, 2, i, Name[i])
-  Sign.Doss <- rbind(Sign.Doss, sign.dos90, sign.dos95, sign.dos99)
+  #sign.dos90 <- perm.comparemul(obs.tvals, 90, 4, i, Name[i])
+  #sign.dos95 <- perm.comparemul(obs.tvals, 95, 4, i, Name[i])
+  #sign.dos99 <- perm.comparemul(obs.tvals, 99, 4, i, Name[i])
+  #Sign.Doss <- rbind(Sign.Doss, sign.dos90, sign.dos95, sign.dos99)
 }
 Sign.Dels <- Sign.Dels %>%
   filter(Phenotype != "Test")
@@ -404,9 +412,17 @@ Sign.Doss
 
 #### save results ####
 ```{r}
-write_csv(Sign.Dels, "../perm/Del/Significant/Sign_Dels_20221027.csv")
-write_csv(Sign.Nigs, "../perm/Nig/Significant/Sign_Nigs_20221101.csv")
-write_csv(Sign.Doss, "../perm/Dos/Significant/Sign_Doss_20221103.csv")
+write_csv(Sign.Dels, "../F1_450/DND/Sign_Dels_20221123.csv")
+write_csv(Sign.Nigs, "../F1_450/Nig/Sign_Nigs_20221128.csv")
+write_csv(Sign.Doss, "../F1_450/DND/Sign_Doss_20221123.csv")
+```
+
+
+#### check dosage QTL ####
+```{r}
+leaf.new %>% 
+  filter(Old.Name %in% c('GWR_100_11','GWR_100_129','GWR_100_151',"GWR_100_19", "GWR_100_258", "GWR_100_329", "GWR_100_414", "GWR_100_422", "GWR_100_85", "XXX_100_119", "XXX_100_133", "XXX_100_170")) %>%
+  select(Old.Name, Blup_Transfo_Area_2_cavities_filled_field_y1_y2, Blup_Transfo_Horiz_size_25perc_field_year2, Blup_Transfo_Horiz_size_50perc_field_y1_y2, Blup_Transfo_Horiz_size_75perc_field_y1_y2, Blup_Transfo_Horiz_size_center_field_y1_y2, Blup_Transfo_Indent_depth_mean_field_y1_y2, Blup_Transfo_Num_Indents_field_y1_y2, Blup_Transfo_Perimeter_2_excl_cavities_field_y1_y2, Blup_Transfo_Vert_size_50perc_field_y1_y2, Blup_Transfo_Vert_size_25perc_field_y1_y2, Blup_Transfo_Vert_size_75perc_field_y1_y2, Blup_Transfo_Vert_size_center_field_y1_y2, Blup_Transfo_Vert_size_center_Horiz_size_center_ratio_field_y1_y2)
 ```
 
 

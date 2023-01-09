@@ -21,10 +21,10 @@ library(ggplot2)
 
 ```{r}
 # original genotype with all samples
-ori.geno.del <- read_tsv("../../Phasing/output/binbySNP_F1_manhaplo_female_20221104.txt") %>%
+ori.geno.del <- read_tsv("../../Phasing/output/binbySNP_F1_manhaplo_female_rnaMark_20221120.txt") %>%
   as.data.frame() %>%
   select(1,2,3,4,5,seq(from=6,to=2025,by=4))
-ori.geno.nig <- read_tsv("../../Phasing/output/binbySNP_F1_manhaplo_male_20221103.txt") %>%
+ori.geno.nig <- read_tsv("../../Phasing/output/binbySNP_F1_manhaplo_male_rnaMark_20221120.txt") %>%
   as.data.frame() %>%
   select(1,2,3,4,5,seq(from=6,to=2025,by=4))
 ori.geno.del
@@ -36,17 +36,29 @@ ori.geno.nig
 lines <- read_csv("../output/F1_genomic_lines_20221110.csv")
 lines.dip <- lines %>%
   filter(is.na(F1.Genotype) == TRUE) %>%
-  mutate(Samples = paste(str_replace(string = Seq.File, pattern = "(.*)_(.*)_aln.sam", replacement = "\\1"), str_replace(string = Seq.File, pattern = "(.*)_(.*)_aln.sam", replacement = "\\2"), sep="-")) %>%
-  select(Samples, `Sample ID`)
+  mutate(Seq.Name = paste(str_replace(string = Seq.File, pattern = "(.*)_(.*)_aln.sam", replacement = "\\1"), str_replace(string = Seq.File, pattern = "(.*)_(.*)_aln.sam", replacement = "\\2"), sep="-")) %>%
+  rowwise() %>%
+  mutate(Old.Name = paste(str_split(`Sample ID`, "_", n=4, simplify = TRUE)[1,1], 
+                    str_split(`Sample ID`, "_", n=4, simplify = TRUE)[1,2],
+                    str_split(`Sample ID`, "_", n=4, simplify = TRUE)[1,3],
+                    sep = "_")) %>%
+  select(Seq.Name, Old.Name) 
   
 lines.dip
 ```
+
+### save F1 available lines ###
+```{r}
+write_csv(lines.dip, "/Users/wendy/Desktop/QTL_demo_Weier/F1_414lines_20221116.csv")
+```
+
+
 
 ### selectively keep sample columns ###
 ```{r}
 # only keep sample columns in geno files with Samples in lines.dip
 ori.samp <- str_replace(string = colnames(ori.geno.del[c(-1,-2,-3,-4,-5)]), pattern = "Haplotype-(.*)", replacement = "\\1")
-tar.samp <- lines.dip$Samples
+tar.samp <- lines.dip$Seq.Name
 tar.samp.col <- c()
 for (i in 1:length(ori.samp)) {
   if (ori.samp[i] %in% tar.samp) {
@@ -79,14 +91,188 @@ dim(geno.del.t)
 colnames(geno.del.t) <- t(Markers)
 geno.del.trans <- as.data.frame(geno.del.t)
 geno.del.trans.named <- geno.del.trans %>%
-  mutate(Old.Name = str_replace(rownames(geno.del.trans), "Haplotype-(.*)", "\\1")) %>%
-  select(Old.Name, everything()) 
-  
+  mutate(Seq.Name = str_replace(rownames(geno.del.trans), "Haplotype-(.*)", "\\1")) %>%
+  select(Seq.Name, everything()) 
+
 rownames(geno.del.trans.named) <- NULL
-geno.del.trans.named
+
+geno.del.trans.old.name <- left_join(geno.del.trans.named, lines.dip, by = "Seq.Name") %>%
+  select(Old.Name, everything())
+geno.del.trans.f <- geno.del.trans.old.name %>%
+  select(-Seq.Name)
+geno.del.trans.f 
+```
+
+#### function: combine redundant genotypes
+```{r}
+combinegeno.two <- function(g1,g2) {
+  result.list <- c()
+  sapply(1:length(g1), function(i) {
+    if (g1[i] == g2[i]) {
+      cg <- g1[i]
+      }
+    else if (g1[i] != "." & g2[i] == ".") {
+      cg <- g1[i]
+      }
+    else if (g1[i] == "." & g2[i] != ".") {
+      cg <- g2[i]
+      }
+    else if (g1[i] != "." & g2[i] != "." & g1[i] != g2[i]) {
+      cg <- "."
+      }
+    result.list <- c(result.list, cg)
+  }) 
+  
+}
+
+combinegeno.three <- function(g1,g2,g3) {
+  result.list <- c()
+  sapply(1:length(g1), function(i) {
+    if (g1[i] == g2[i] & g2[i] == g3[i]) {
+    cg <- "."
+    }
+    else if (g1[i] != "." & g2[i] == "." & g3[i] == ".") {
+      cg <- g1[i]
+    }
+    else if (g1[i] == "." & g2[i] != "." & g3[i] == ".") {
+      cg <- g2[i]
+    }
+    else if (g1[i] == "." & g2[i] == "." & g3[i] != ".") {
+      cg <- g3[i]
+    }
+    else if (g1[i] != "." & g2[i] != "." & g3[i] == "." & g1[i] == g2[i]) {
+      cg <- g1[i]
+    }
+    else if (g1[i] != "." & g2[i] != "." & g3[i] == "." & g1[i] != g2[i]) {
+      cg <- "."
+    }
+    else if (g1[i] != "." & g2[i] == "." & g3[i] != "." & g1[i] == g3[i]) {
+      cg <- g1[i]
+    }
+    else if (g1[i] != "." & g2[i] == "." & g3[i] != "." & g1[i] != g3[i]) {
+      cg <- "."
+    }
+    else if (g1[i] == "." & g2[i] != "." & g3[i] != "." & g2[i] == g3[i]) {
+      cg <- g2[i]
+    }
+    else if (g1[i] == "." & g2[i] != "." & g3[i] != "." & g2[i] != g3[i]) {
+      cg <- "."
+    }
+    else {
+      cg <- "."
+    }
+    result.list <- c(result.list, cg)
+  }) 
+}
 ```
 
 
+### P.deltoides ###
+#### adjust colnames to make them unique for selection
+```{r}
+redun.name <- names(which(table(geno.del.trans.f$Old.Name) > 1))
+del.dup <- geno.del.trans.f %>%
+  filter(Old.Name %in% redun.name) %>%
+  select(-1) %>%
+  t() %>%
+  as.data.frame()
+Col.name <- geno.del.trans.f %>%
+  filter(Old.Name %in% redun.name) %>%
+  select(1)
+colnames(del.dup) <- Col.name[,1]
+
+dup.names.unq <- c()
+dup.names.unq2 <- c()
+new.colnames <- c()
+
+for (i in 1:length(colnames(del.dup))) {
+  if (colnames(del.dup)[i] %in% dup.names.unq2) {
+    new.name <- paste(colnames(del.dup)[i], ".3", sep="")
+    new.colnames <- c(new.colnames, new.name)
+  }
+  else if (colnames(del.dup)[i] %in% dup.names.unq) {
+    dup.names.unq2 <- c(dup.names.unq2, colnames(del.dup)[i])
+    new.name <- paste(colnames(del.dup)[i], ".2", sep="")
+    new.colnames <- c(new.colnames, new.name)
+  }
+  else {
+    dup.names.unq <- c(dup.names.unq, colnames(del.dup)[i])
+    new.name <- paste(colnames(del.dup)[i], ".1", sep="")
+    new.colnames <- c(new.colnames, new.name)
+  }
+}
+colnames(del.dup) <- new.colnames
+del.dup 
+```
+
+
+#### combined genotype of Old.Name ####
+```{r}
+del.combined <- tibble(V1 = seq(1:530))
+for (i in 1:length(redun.name)) {
+  cal.col <- c()
+  for (j in 1:ncol(del.dup)) {
+    if (str_replace(colnames(del.dup)[j],"(.*).(.)","\\1") == redun.name[i]) {
+      cal.col <- c(cal.col,j)
+    }
+  }
+  ndup <- length(cal.col)
+  if (ndup == 2) {
+    del.dup.s <- del.dup %>%
+      select(cal.col) 
+    combined.geno <- combinegeno.two(del.dup.s[,1],del.dup.s[,2])
+    del.dup.c <- cbind(del.dup.s, combined.geno)
+    colnames(del.dup.c)[3] <- str_replace(colnames(del.dup.c)[1], "(.*).(.)","\\1")
+    del.dup.cf <- del.dup.c %>%
+      select(3)
+  }
+  else if (ndup == 3) {
+    del.dup.s <- del.dup %>%
+      select(cal.col)
+    combined.geno <- combinegeno.three(del.dup.s[,1],del.dup.s[,2], del.dup.s[,3])
+    del.dup.c <- cbind(del.dup.s, combined.geno)
+    colnames(del.dup.c)[4] <- str_replace(colnames(del.dup.c)[1], "(.*).(.)","\\1")
+    del.dup.cf <- del.dup.c %>%
+      select(4)
+  }
+  del.combined <- cbind(del.combined,del.dup.cf)
+}
+del.combined.geno <- del.combined %>%
+  select(-1)
+del.combined.geno
+```
+
+#### put combined geno back into the full genotype set ####
+```{r}
+unique.name <- names(which(table(geno.del.trans.f$Old.Name) == 1))
+geno.del.trans.un <- geno.del.trans.f %>%
+  filter(Old.Name %in% unique.name)
+
+del.combined.geno.re <- del.combined.geno %>%
+  t() %>%
+  as.data.frame() 
+del.combined.geno.redun <- del.combined.geno.re %>%
+  mutate(Old.Name = rownames(del.combined.geno.re)) %>%
+  select(Old.Name, everything())
+
+rownames(del.combined.geno.redun) <- NULL
+del.combined.geno.redun
+
+geno.del.all <- rbind(geno.del.trans.un, del.combined.geno.redun)
+geno.del.all[geno.del.all == "."] <- NA
+geno.del.all[,2:530] <- apply(geno.del.all[,2:530], 2, function(x){as.numeric(x)})
+geno.del.all.f <- geno.del.all %>%
+  filter(Old.Name != "GWR_100_217A") %>%
+  filter(Old.Name != "XXX_100_158") %>%
+  filter(Old.Name != "GWR_100_477")
+geno.del.all.f
+```
+
+
+
+
+### P.nigra
+#### get standard format for P.nigra genotype
 ```{r}
 # get a standard format for genotype (nigra)
 Markers <- f.geno.nig %>%
@@ -101,34 +287,450 @@ dim(geno.nig.t)
 colnames(geno.nig.t) <- t(Markers)
 geno.nig.trans <- as.data.frame(geno.nig.t)
 geno.nig.trans.named <- geno.nig.trans %>%
-  mutate(Old.Name = str_replace(rownames(geno.nig.trans), "Haplotype-(.*)", "\\1")) %>%
-  select(Old.Name, everything()) 
+  mutate(Seq.Name = str_replace(rownames(geno.nig.trans), "Haplotype-(.*)", "\\1")) %>%
+  select(Seq.Name, everything()) 
   
 rownames(geno.nig.trans.named) <- NULL
-geno.nig.trans.named
+
+geno.nig.trans.old.name <- left_join(geno.nig.trans.named, lines.dip, by = "Seq.Name") %>%
+  select(Old.Name, everything())
+geno.nig.trans.f <- geno.nig.trans.old.name %>%
+  select(-Seq.Name)
+geno.nig.trans.f
+```
+
+#### get redundant old.names for nigra
+```{r}
+redun.name <- names(which(table(geno.nig.trans.f$Old.Name) > 1))
+nig.dup <- geno.nig.trans.f %>%
+  filter(Old.Name %in% redun.name) %>%
+  select(-1) %>%
+  t() %>%
+  as.data.frame()
+Col.name <- geno.nig.trans.f %>%
+  filter(Old.Name %in% redun.name) %>%
+  select(1)
+colnames(nig.dup) <- Col.name[,1]
+
+dup.names.unq <- c()
+dup.names.unq2 <- c()
+new.colnames <- c()
+
+for (i in 1:length(colnames(nig.dup))) {
+  if (colnames(nig.dup)[i] %in% dup.names.unq2) {
+    new.name <- paste(colnames(nig.dup)[i], ".3", sep="")
+    new.colnames <- c(new.colnames, new.name)
+  }
+  else if (colnames(nig.dup)[i] %in% dup.names.unq) {
+    dup.names.unq2 <- c(dup.names.unq2, colnames(nig.dup)[i])
+    new.name <- paste(colnames(nig.dup)[i], ".2", sep="")
+    new.colnames <- c(new.colnames, new.name)
+  }
+  else {
+    dup.names.unq <- c(dup.names.unq, colnames(nig.dup)[i])
+    new.name <- paste(colnames(nig.dup)[i], ".1", sep="")
+    new.colnames <- c(new.colnames, new.name)
+  }
+}
+colnames(nig.dup) <- new.colnames
+nig.dup 
+```
+
+#### combined genotype of Old.Name ####
+```{r}
+nig.combined <- tibble(V1 = seq(1:472))
+for (i in 1:length(redun.name)) {
+  cal.col <- c()
+  for (j in 1:ncol(nig.dup)) {
+    if (str_replace(colnames(nig.dup)[j],"(.*).(.)","\\1") == redun.name[i]) {
+      cal.col <- c(cal.col,j)
+    }
+  }
+  ndup <- length(cal.col)
+  if (ndup == 2) {
+    nig.dup.s <- nig.dup %>%
+      select(cal.col) 
+    combined.geno <- combinegeno.two(nig.dup.s[,1],nig.dup.s[,2])
+    nig.dup.c <- cbind(nig.dup.s, combined.geno)
+    colnames(nig.dup.c)[3] <- str_replace(colnames(nig.dup.c)[1], "(.*).(.)","\\1")
+    nig.dup.cf <- nig.dup.c %>%
+      select(3)
+  }
+  else if (ndup == 3) {
+    nig.dup.s <- nig.dup %>%
+      select(cal.col)
+    combined.geno <- combinegeno.three(nig.dup.s[,1],nig.dup.s[,2], nig.dup.s[,3])
+    nig.dup.c <- cbind(nig.dup.s, combined.geno)
+    colnames(nig.dup.c)[4] <- str_replace(colnames(nig.dup.c)[1], "(.*).(.)","\\1")
+    nig.dup.cf <- nig.dup.c %>%
+      select(4)
+  }
+  nig.combined <- cbind(nig.combined,nig.dup.cf)
+}
+nig.combined.geno <- nig.combined %>%
+  select(-1)
+nig.combined.geno
+```
+
+#### put combined geno back into the full genotype set ####
+```{r}
+unique.name <- names(which(table(geno.nig.trans.f$Old.Name) == 1))
+geno.nig.trans.un <- geno.nig.trans.f %>%
+  filter(Old.Name %in% unique.name)
+
+nig.combined.geno.re <- nig.combined.geno %>%
+  t() %>%
+  as.data.frame() 
+nig.combined.geno.redun <- nig.combined.geno.re %>%
+  mutate(Old.Name = rownames(nig.combined.geno.re)) %>%
+  select(Old.Name, everything())
+
+rownames(nig.combined.geno.redun) <- NULL
+nig.combined.geno.redun
+
+geno.nig.all <- rbind(geno.nig.trans.un, nig.combined.geno.redun)
+geno.nig.all[geno.nig.all == "."] <- NA
+geno.nig.all[,2:472] <- apply(geno.nig.all[,2:472], 2, function(x){as.numeric(x)})
+geno.nig.all.f <- geno.nig.all %>%
+  filter(Old.Name != "GWR_100_217A") %>%
+  filter(Old.Name != "XXX_100_158") %>%
+  filter(Old.Name != "GWR_100_477")
+geno.nig.all.f
 ```
 
 
 ### save the files ###
 ```{r}
-write_csv(geno.nig.trans.named, "../F1_450/genotype/Pnigra_F1_geno_20221115.csv")
-write_csv(geno.del.trans.named, "../F1_450/genotype/Pdeltoides_F1_geno_20221115.csv")
+write_tsv(geno.nig.all.f, "../F1_450/genotype/Pnigra_F1_geno_20221214.txt")
+write_tsv(geno.del.all.f, "../F1_450/genotype/Pdeltoides_F1_geno_20221214.txt")
 ```
 
 
 
-### dosage genotype ###
-Based on the dosage variation extracted by Heloise, we build a genotype matrix for dosage with 450 lines. 
 
-#### load files ####
+
+### remove extra markers after Step1 common marker list generation ###
 ```{r}
-lesion.unique <- read_tsv("/Users/wendy/Desktop/QTL_demo_Weier/PopIndelsMasterList_v5_unique_genotype.txt")
-lesion <- read_tsv("/Users/wendy/Desktop/QTL_demo_Weier/PopIndelsMasterList_v5.txt")
-lesion.unique
-lesion
+test.del <- read_tsv("../F1_450/genotype/Pdeltoides_F1_whole_genome_geno_imputed_20221215.txt")
+test.nig <- read_tsv("../F1_450/genotype/Pnigra_F1_whole_genome_geno_imputed_20221215.txt")
+markers <- colnames(test.nig)[-1]
+rm.Markers <- c()
+for (i in 1:length(markers)) {
+  start <- as.numeric(str_replace(string = markers[i], pattern = "(.*)_(.*)_(.*)", replacement = "\\2"))
+  end <- as.numeric(str_replace(string = markers[i], pattern = "(.*)_(.*)_(.*)", replacement = "\\3"))
+  if (start >= end) {
+    print(markers[i])
+    rm.Markers <- c(rm.Markers, markers[i])
+  }
+}
+
+```
+
+
+### check for genotype level for each marker
+The QTL can be only performed on markers with two or more levels. 
+So make sure every marker has 2 or more levels.
+
+### replace float to NA ###
+#### load dataset ####
+```{r}
+Del.st <- read_tsv("../F1_450/genotype/Pdeltoides_F1_deltoidesGeno_imputed_sparsed_20221215.txt") %>%
+  as.data.frame()
+Nig.st <- read_tsv("../F1_450/genotype/Pnigra_F1_deltoidesGeno_imputed_sparsed_20221215.txt") %>%
+  as.data.frame()
+Del.st
+Nig.st
+```
+
+#### replace float to NA ####
+```{r}
+# deltoides
+for (i in 2:ncol(Del.st)) {
+  Del.st[,i][Del.st[,i] == "1.0"] <- "1"
+  Del.st[,i][Del.st[,i] == "2.0"] <- "2"
+}
+
+for (i in 2:ncol(Del.st)) {
+  Del.st[,i][substring(Del.st[,i],1,2) == "1."] <- NA
+}
+
+for (i in 2:ncol(Del.st)) {
+  Del.st[,i][Del.st[,i] == "1"] <- "D1"
+  Del.st[,i][Del.st[,i] == "2"] <- "D2"
+}
+Del.st
+
+
+# nigra
+for (i in 2:ncol(Nig.st)) {
+  Nig.st[,i][Nig.st[,i] == "1.0"] <- "1"
+  Nig.st[,i][Nig.st[,i] == "2.0"] <- "2"
+}
+
+for (i in 2:ncol(Nig.st)) {
+  Nig.st[,i][substring(Nig.st[,i],1,2) == "1."] <- NA
+}
+
+for (i in 2:ncol(Nig.st)) {
+  Nig.st[,i][Nig.st[,i] == "1"] <- "N1"
+  Nig.st[,i][Nig.st[,i] == "2"] <- "N2"
+}
+Nig.st
+
+```
+
+#### remove GWR_100_217A (because it does not have dosage info) ####
+```{r}
+Del.st.f <- Del.st %>%
+  filter(Old.Name != "GWR_100_217A") %>%
+  filter(Old.Name != "XXX_100_158") %>%
+  filter(Old.Name != "GWR_100_477")
+Del.st.f
+
+Nig.st.f <- Nig.st %>%
+  filter(Old.Name != "GWR_100_217A") %>%
+  filter(Old.Name != "XXX_100_158") %>%
+  filter(Old.Name != "GWR_100_477")
+Nig.st.f
+```
+
+
+#### apply function to P.deltoides and P.nigra
+```{r}
+for (i in 2:ncol(Nig.st.f)) {
+  level <- length(unique(Nig.st.f[,i]))
+  if (level < 2) {
+    print(colnames(Nig.st.f)[i])
+  }
+}
+
+```
+
+12/15/2022 update: Every marker has at least 2 levels, no need to remove markers!!!
+
+#### remove markers with insufficient levels
+```{r}
+# Pnigra
+Nig.st.fn <- Nig.st.f %>%
+  select(-Chr05_25878632_25878632, 
+         -Chr03_11540495_12475438,-Chr03_12484751_13073648,-Chr14_8830871_9343987,-Chr14_9344083_9965612)
+dim(Nig.st.fn)
+# Pdeltoides
+Del.st.fn <- Del.st.f %>%
+  select(-Chr05_25878632_25878632,
+         -Chr03_11540495_12475438,-Chr03_12484751_13073648,-Chr14_8830871_9343987,-Chr14_9344083_9965612)
+dim(Del.st.fn)
+```
+
+
+#### output files ####
+```{r}
+write_tsv(Del.st.f, "../F1_450/genotype/Pdeltoides_F1_deltoidesGeno_imputed_sparsed_20221215.txt")
+write_tsv(Nig.st.f, "../F1_450/genotype/Pnigra_F1_deltoidesGeno_imputed_sparsed_20221215.txt")
 ```
 
 
 
+## Dosage variation adjustment ##
+### Initial adjustment before generating common markers ###
+#### import dataset
+```{r}
+dosage_gt <- read_tsv("../F1_450/genotype/genoTable_relative_dosage_geno_20221118.txt") %>%
+  as.data.frame()
+dosage_gt 
+```
+
+
+#### reorder the Old.Name ####
+```{r}
+F1.lines.un <- F1.lines %>%
+  filter(Old.Name != "XXX_100_158") %>%
+  filter(Old.Name != "GWR_100_477")
+dosage.gt <- left_join(F1.lines.un, dosage_gt, by="Old.Name")
+dosage.gt
+```
+
+
+#### convert relative read coverage ####
+1.0 (neutral): convert to 1
+0.5 (deletion): convert to 0
+1.5 (duplication): convert to 2
+```{r}
+# check for all the values in dosage dataset
+for (i in 2:547) {
+  dosage.gt[,i][dosage.gt[,i] == 0.5] <- 0
+  dosage.gt[,i][dosage.gt[,i] == 1.5] <- 2
+}
+dosage.gt
+
+```
+
+#### output dosage file ####
+```{r}
+write_tsv(dosage.gt, "../F1_450/genotype/Dosage_F1_geno_20221120.txt")
+```
+
+
+
+### adjust dosage genotype with standard geno format ###
+This adjustment step is for the output file of generating common markers.
+This is the last step before upload to server for QTL analysis. 
+#### import dataset ####
+```{r}
+dosage.gt.cm <- read_tsv("../F1_450/genotype/Dosage_F1_deltoidesGeno_sparsed_20221215.txt") %>%
+  as.data.frame()
+dosage.gt.cm
+```
+
+
+#### convert genotypes to standard format ###
+1. convert float to int
+2. convert copy number variation edge to deletion (0) or duplication (2).
+```{r}
+for (i in 2:ncol(dosage.gt.cm)) {
+  dosage.gt.cm[,i][dosage.gt.cm[,i] == "1"] <- 1
+  dosage.gt.cm[,i][dosage.gt.cm[,i] == "1.0"] <- 1
+  dosage.gt.cm[,i][dosage.gt.cm[,i] == "1.00"] <- 1
+  dosage.gt.cm[,i][dosage.gt.cm[,i] == "0"] <- 0
+  dosage.gt.cm[,i][dosage.gt.cm[,i] == "0.0"] <- 0
+  dosage.gt.cm[,i][dosage.gt.cm[,i] == "0.00"] <- 0
+  dosage.gt.cm[,i][dosage.gt.cm[,i] == "2"] <- 2
+  dosage.gt.cm[,i][dosage.gt.cm[,i] == "2.0"] <- 2
+  dosage.gt.cm[,i][dosage.gt.cm[,i] == "2.00"] <- 2
+}
+
+for (i in 2:ncol(dosage.gt.cm)) {
+  dosage.gt.cm[,i][substring(dosage.gt.cm[,i],1,2) == "1."] <- 2
+  dosage.gt.cm[,i][substring(dosage.gt.cm[,i],1,2) == "0."] <- 0
+}
+
+#dosage.gt.cm.f <- dosage.gt.cm %>%
+  #select(-Chr05_25878632_25878632,
+         #-Chr03_11540495_12475438, -Chr03_12484751_13073648, -Chr14_8830871_9343987, -Chr14_9344083_9965612)
+
+dosage.gt.cm
+```
+
+#### apply function to P.deltoides and P.nigra
+```{r}
+uniLevel <- c()
+for (i in 2:ncol(dosage.gt.cm)) {
+  level <- length(unique(dosage.gt.cm[,i]))
+  if (level < 2) {
+    uniLevel <- c(uniLevel, colnames(dosage.gt.cm)[i])
+  }
+}
+uniLevel
+```
+
+
+#### get markers index for uniLevel markers 
+```{r}
+uniIndex <- c()
+for (i in 1:length(uniLevel)) {
+  mi <- which(colnames(dosage.gt.cm)==uniLevel[i])
+  uniIndex <- c(uniIndex, mi)
+}
+uniIndex
+```
+
+#### remove uniLevel markers from three genotype list
+```{r}
+# dosage
+Dos.gt.f <- dosage.gt.cm %>%
+  select(-uniIndex)
+dim(Dos.gt.f)
+# Nigra
+Nig.gt.f <- Nig.st.f %>%
+  select(-uniIndex)
+dim(Nig.gt.f)
+# Deltoides
+Del.gt.f <- Del.st.f %>%
+  select(-uniIndex)
+dim(Del.gt.f)
+```
+
+
+#### output file ####
+```{r}
+write_tsv(Dos.gt.f, "../F1_450/genotype/Dosage_F1_deltoidesGeno_sparsed_20221215.txt")
+write_tsv(Nig.gt.f, "../F1_450/genotype/Pnigra_F1_deltoidesGeno_imputed_sparsed_20221215.txt")
+write_tsv(Del.gt.f, "../F1_450/genotype/Pdeltoides_F1_deltoidesGeno_imputed_sparsed_20221215.txt")
+```
+
+
+## Replace deleted segments (NAs) in Pnigra genotype into 0
+### import dosage get deletion file
+```{r}
+### NEED TO GET DOSAGE GENOTYPE WITH 473 MARKERS!!!!! ###
+dosage_getD <- read_tsv("../F1_450/genotype/Dosage_F1_geno_getDeletion_20221215.txt") %>%
+  as.data.frame()
+dosage_getD
+```
+
+### adjust dosage genotype
+```{r}
+for (i in 2:ncol(dosage_getD)) {
+  dosage_getD[,i][dosage_getD[,i] == "1"] <- 1
+  dosage_getD[,i][dosage_getD[,i] == "1.0"] <- 1
+  dosage_getD[,i][dosage_getD[,i] == "1.00"] <- 1
+  dosage_getD[,i][dosage_getD[,i] == "0"] <- 0
+  dosage_getD[,i][dosage_getD[,i] == "0.0"] <- 0
+  dosage_getD[,i][dosage_getD[,i] == "0.00"] <- 0
+  dosage_getD[,i][dosage_getD[,i] == "2"] <- 2
+  dosage_getD[,i][dosage_getD[,i] == "2.0"] <- 2
+  dosage_getD[,i][dosage_getD[,i] == "2.00"] <- 2
+}
+
+for (i in 2:ncol(dosage_getD)) {
+  dosage_getD[,i][substring(dosage_getD[,i],1,2) == "1."] <- 2
+  dosage_getD[,i][substring(dosage_getD[,i],1,2) == "0."] <- 0
+}
+
+dosage_getD
+```
+
+### locate deleted segments in dosage genotype
+```{r}
+dosage_getD_matrix <- as.matrix(dosage_getD)
+deleted_seg <- which(dosage_getD_matrix == "0",arr.ind = TRUE)
+```
+
+
+### Transfer Pnigra NA to ".", and convert into matrix, prepare for replacement
+```{r}
+geno.nig.all.f[is.na(geno.nig.all.f)] <- "."
+geno.nig.all.f
+nigra_getD_matrix <- as.matrix(geno.nig.all.f)
+```
+
+
+### Based on del_seg, replace NAs in nigra_gt_matrix into 0.
+```{r}
+for (i in 1:nrow(deleted_seg)) {
+  row <- deleted_seg[i,1]
+  col <- deleted_seg[i,2]
+  nigra_getD_matrix[row,col] <- "0"
+}
+```
+
+
+### Transform nigra_getD_matrix back to tibble
+```{r}
+geno.nig.all.new <- as.data.frame(nigra_getD_matrix)
+dat <- geno.nig.all.new %>%
+  select(-Old.Name) 
+dat <- as.data.frame(sapply(dat, as.numeric))
+geno.nig.all.n <- dat %>%
+  mutate(Old.Name = geno.nig.all.new[,1]) %>%
+  select(Old.Name, everything())
+geno.nig.all.n <- tibble(geno.nig.all.n)
+geno.nig.all.n
+```
+
+### save file 
+```{r}
+write_tsv(geno.nig.all.n, "../F1_450/genotype/Pnigra_F1_geno_deletion_20221215.txt")
+```
 
 

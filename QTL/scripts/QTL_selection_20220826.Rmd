@@ -21,17 +21,17 @@ library(tidyverse)
 
 #### datasets prepared ####
 ```{r}
-p.files <- tibble(filename = list.files("../Pvalue_Leaf_DND/"))
+p.files <- tibble(filename = list.files("../F1_450/Dos/BH/Pvalue/Leaf/delGeno/"))
 p.files.paths <- p.files %>%
-  mutate(filepath = paste("../Pvalue_Leaf_DND/", filename, sep = "")) %>%
+  mutate(filepath = paste("../F1_450/Dos/BH/Pvalue/Leaf/delGeno/", filename, sep = "")) %>%
   mutate(phenotype = str_replace(string = filename, pattern = "(.*).csv", replacement = "\\1"))
-head(p.files.paths)
+p.files.paths
 ```
 
 ### Recurrently load files and do selection ###
 ```{r}
 Linkage.define <- function(pvalue) {
-  if (pvalue <= 0.1 & pvalue >= 0.05) {
+  if (pvalue < 0.1 & pvalue >= 0.05) {
     "suggestive"
   }
   else if (pvalue < 0.05 & pvalue >= 0.01) {
@@ -41,6 +41,15 @@ Linkage.define <- function(pvalue) {
     "confirmed"
   }
 }
+
+Model.define <- function(pvalue) {
+  if (pvalue <= 0.05) {
+    "full_model"
+  }
+  else if (pvalue > 0.05) {
+    "single_model"
+  }
+}
 ```
 
 
@@ -48,33 +57,39 @@ Linkage.define <- function(pvalue) {
 ```{r}
 Del.QTLs <- tibble(Pheno = c("Test"),
                    Marker = c("Test"),
-                   Del_P_adj = c(123))
+                   Del_P_adj = c(123),
+                   #Del_PctExp = c(123),
+                   R_squared = c(123))
 Nig.QTLs <- tibble(Pheno = c("Test"),
                    Marker = c("Test"),
-                   Nig_P_adj = c(123))
+                   Nig_P_adj = c(123),
+                   #Nig_PctExp = c(123),
+                   R_squared = c(123))
 Dos.QTLs <- tibble(Pheno = c("Test"),
                    Marker = c("Test"),
-                   Dos_P_adj = c(123))
+                   Dos_P_adj = c(123),
+                   #Dos_PctExp = c(123),
+                   R_squared = c(123))
 
 for (i in 1:length(p.files.paths$filename)) {
   p.file <- read_csv(p.files.paths$filepath[i])
   # Deltoides
-  Dels <- p.file %>%
-    filter(Del_P_adj != "NA" & Del_P_adj <= 0.1) %>%
-    mutate(Pheno = p.files.paths$phenotype[i]) %>%
-    select(Pheno, Marker, Del_P_adj)
-  Del.QTLs <- rbind(Del.QTLs,Dels)
+  #Dels <- p.file %>%
+    #filter(Del_P_adj != "NA" & Del_P_adj <= 0.1) %>%
+    #mutate(Pheno = p.files.paths$phenotype[i]) %>%
+    #select(Pheno, Marker, Del_P_adj, R_squared)
+  #Del.QTLs <- rbind(Del.QTLs,Dels)
   # Nigra
-  Nigs <- p.file %>%
-    filter(Nig_P_adj != "NA" & Nig_P_adj <= 0.1) %>%
-    mutate(Pheno = p.files.paths$phenotype[i]) %>%
-    select(Pheno, Marker, Nig_P_adj)
-  Nig.QTLs <- rbind(Nig.QTLs,Nigs)
+  #Nigs <- p.file %>%
+    #filter(Nig_P_adj != "NA" & Nig_P_adj <= 0.1) %>%
+    #mutate(Pheno = p.files.paths$phenotype[i]) %>%
+    #select(Pheno, Marker, Nig_P_adj, R_squared)
+  #Nig.QTLs <- rbind(Nig.QTLs,Nigs)
   # Dosage
   Doss <- p.file %>%
     filter(Dos_P_adj != "NA" & Dos_P_adj <= 0.1) %>%
     mutate(Pheno = p.files.paths$phenotype[i]) %>%
-    select(Pheno, Marker, Dos_P_adj)
+    select(Pheno, Marker, Dos_P_adj, R_squared)
   Dos.QTLs <- rbind(Dos.QTLs,Doss)
 }
 ```
@@ -119,12 +134,193 @@ Nig.Dos.QTLs.adj
 
 ### export files ###
 ```{r}
-write_csv(Del.QTLs.adj, "../loci/Pdeltoides_QTL_DND_20220930.csv")
-write_csv(Nig.QTLs.adj, "../loci/Pnigra_QTL_DND_20220930.csv")
-write_csv(Dos.QTLs.adj, "../loci/Dosage_QTL_DND_20220930.csv")
-write_csv(Nig.Dos.QTLs.adj, "../loci/PnigraDosage_QTL_lm_20220918.csv")
+write_csv(Del.QTLs.adj, "../F1_450/Del/BH/loci/BH_sp_delGeno_Pdeltoides_QTL_Del_leaf_20221229.csv")
+write_csv(Nig.QTLs.adj, "../F1_450/Nig/BH/loci/BH_sp_delGeno_Pnigra_QTL_Nig_leaf_20221229.csv")
+write_csv(Dos.QTLs.adj, "../F1_450/Dos/BH/loci/BH_sp_delGeno_Dosage_QTL_Dos_leaf_20221229.csv")
+#write_csv(Nig.Dos.QTLs.adj, "../loci/PnigraDosage_QTL_lm_20220918.csv")
 ```
 
+
+## add model compare results 
+### load file pathways
+```{r}
+p.files.m <- tibble(filename = list.files("../F1_450/model_comp/"))
+p.files.paths.m <- p.files.m %>%
+  mutate(filepath = paste("../F1_450/model_comp/", filename, sep = "")) %>%
+  mutate(phenotype = str_replace(string = filename, pattern = "(.*).csv", replacement = "\\1"))
+p.files.paths.m
+```
+
+### get compare results
+```{r}
+# del
+sig.phenos <- unique(Del.QTLs.adj$Pheno)
+Del.QTLs.LRT <- tibble(Pheno = as.character(),
+                      Marker = as.character(),
+                      Del_P_adj = as.numeric(),
+                      R_squared = as.numeric(),
+                      Linkage_Class = as.character(),
+                      Del_Pval = as.numeric())
+for (i in 1:length(p.files.paths.m$filename)) {
+  if (p.files.paths.m$phenotype[i] %in% sig.phenos) {
+    phenoname <- p.files.paths.m$phenotype[i]
+    m.file <- read_csv(p.files.paths.m$filepath[i])
+    Del.QTLs.adj.ph <- Del.QTLs.adj %>%
+      filter(Pheno == phenoname)
+    Del.QTLs.lrt <- left_join(Del.QTLs.adj.ph, m.file, by="Marker")
+    Del.QTLs.lrt <- Del.QTLs.lrt %>%
+      select(Pheno, Marker, Del_P_adj, R_squared, Linkage_Class, Del_Pval)
+    Del.QTLs.LRT <- rbind(Del.QTLs.LRT, Del.QTLs.lrt)
+  }
+}
+Del.QTLs.LRT.adj <- Del.QTLs.LRT %>%
+  rowwise() %>%
+  mutate(Better_Model = Model.define(Del_Pval))
+Del.QTLs.LRT.adj
+```
+
+
+```{r}
+# nig
+sig.phenos <- unique(Nig.QTLs.adj$Pheno)
+Nig.QTLs.LRT <- tibble(Pheno = as.character(),
+                      Marker = as.character(),
+                      Nig_P_adj = as.numeric(),
+                      R_squared = as.numeric(),
+                      Linkage_Class = as.character(),
+                      Nig_Pval = as.numeric())
+for (i in 1:length(p.files.paths.m$filename)) {
+  if (p.files.paths.m$phenotype[i] %in% sig.phenos) {
+    phenoname <- p.files.paths.m$phenotype[i]
+    m.file <- read_csv(p.files.paths.m$filepath[i])
+    Nig.QTLs.adj.ph <- Nig.QTLs.adj %>%
+      filter(Pheno == phenoname)
+    Nig.QTLs.lrt <- left_join(Nig.QTLs.adj.ph, m.file, by="Marker")
+    Nig.QTLs.lrt <- Nig.QTLs.lrt %>%
+      select(Pheno, Marker, Nig_P_adj, R_squared, Linkage_Class, Nig_Pval)
+    Nig.QTLs.LRT <- rbind(Nig.QTLs.LRT, Nig.QTLs.lrt)
+  }
+} 
+Nig.QTLs.LRT.adj <- Nig.QTLs.LRT %>%
+  rowwise() %>%
+  mutate(Better_Model = Model.define(Nig_Pval))
+Nig.QTLs.LRT.adj
+```
+
+```{r}
+# dos
+sig.phenos <- unique(Dos.QTLs.adj$Pheno)
+Dos.QTLs.LRT <- tibble(Pheno = as.character(),
+                      Marker = as.character(),
+                      Dos_P_adj = as.numeric(),
+                      R_squared = as.numeric(),
+                      Linkage_Class = as.character(),
+                      Dos_Pval = as.numeric())
+for (i in 1:length(p.files.paths.m$filename)) {
+  if (p.files.paths.m$phenotype[i] %in% sig.phenos) {
+    phenoname <- p.files.paths.m$phenotype[i]
+    m.file <- read_csv(p.files.paths.m$filepath[i])
+    Dos.QTLs.adj.ph <- Dos.QTLs.adj %>%
+      filter(Pheno == phenoname)
+    Dos.QTLs.lrt <- left_join(Dos.QTLs.adj.ph, m.file, by="Marker")
+    Dos.QTLs.lrt <- Dos.QTLs.lrt %>%
+      select(Pheno, Marker, Dos_P_adj, R_squared, Linkage_Class, Dos_Pval)
+    Dos.QTLs.LRT <- rbind(Dos.QTLs.LRT, Dos.QTLs.lrt)
+  }
+}
+Dos.QTLs.LRT.adj <- Dos.QTLs.LRT %>%
+  rowwise() %>%
+  mutate(Better_Model = Model.define(Dos_Pval))
+Dos.QTLs.LRT.adj
+```
+
+### save files
+```{r}
+write_csv(Del.QTLs.LRT.adj, "../F1_450/Del/BH/loci/BH_sp_delGeno_LRT_Pdeltoides_QTL_Del_leaf_20221230.csv")
+write_csv(Nig.QTLs.LRT.adj, "../F1_450/Nig/BH/loci/BH_sp_delGeno_LRT_Pnigra_QTL_Nig_leaf_20221230.csv")
+write_csv(Dos.QTLs.LRT.adj, "../F1_450/Dos/BH/loci/BH_sp_delGeno_LRT_Dosage_QTL_Dos_leaf_20221230.csv")
+```
+
+
+### QTL overlaps ###
+#### get pheno_marker names
+```{r}
+Del.sigs.name <- Del.sigs %>%
+  mutate(Pheno_M = paste(Pheno, Marker, sep = "_"))
+Nig.sigs.name <- Nig.sigs %>%
+  mutate(Pheno_M = paste(Pheno, Marker, sep = "_"))
+Dos.sigs.name <- Dos.sigs %>%
+  mutate(Pheno_M = paste(Pheno, Marker, sep = "_"))
+delsigs.name <- delsigs %>%
+  mutate(Pheno_M = paste(Pheno, Marker, sep = "_"))
+nigsigs.name <- nigsigs %>%
+  mutate(Pheno_M = paste(Pheno, Marker, sep = "_"))
+dossigs.name <- dossigs %>%
+  mutate(Pheno_M = paste(Pheno, Marker, sep = "_"))
+
+```
+
+
+#### overlapping QTLs
+```{r}
+# single model Del
+Del.Nig.overlap <- inner_join(Del.sigs.name, Nig.sigs.name, by="Pheno_M")
+unique(Del.Nig.overlap$Pheno_M)
+
+Del.Dos.overlap <- inner_join(Del.sigs.name, Dos.sigs.name, by="Pheno_M")
+unique(Del.Dos.overlap$Pheno_M)
+
+Del.del.overlap <- inner_join(Del.sigs.name, delsigs.name, by="Pheno_M")
+unique(Del.del.overlap$Pheno_M)
+
+Del.nig.overlap <- inner_join(Del.sigs.name, nigsigs.name, by="Pheno_M")
+unique(Del.nig.overlap$Pheno_M)
+
+Del.dos.overlap <- inner_join(Del.sigs.name, dossigs.name, by="Pheno_M")
+unique(Del.dos.overlap$Pheno_M)
+
+# single model Nig
+Nig.Dos.overlap <- inner_join(Nig.sigs.name, Dos.sigs.name, by="Pheno_M")
+unique(Nig.Dos.overlap$Pheno_M)
+
+Nig.del.overlap <- inner_join(Nig.sigs.name, delsigs.name, by="Pheno_M")
+unique(Nig.del.overlap$Pheno_M)
+
+Nig.nig.overlap <- inner_join(Nig.sigs.name, nigsigs.name, by="Pheno_M")
+Nig.nig.overlap
+unique(Nig.nig.overlap$Pheno_M)
+
+Nig.dos.overlap <- inner_join(Nig.sigs.name, dossigs.name, by="Pheno_M")
+unique(Nig.dos.overlap$Pheno_M)
+
+# single model Dos
+Dos.del.overlap <- inner_join(Dos.sigs.name, delsigs.name, by="Pheno_M")
+unique(Dos.del.overlap$Pheno_M)
+
+Dos.nig.overlap <- inner_join(Dos.sigs.name, nigsigs.name, by="Pheno_M")
+unique(Dos.nig.overlap$Pheno_M)
+
+Dos.dos.overlap <- inner_join(Dos.sigs.name, dossigs.name, by="Pheno_M")
+unique(Dos.dos.overlap$Pheno_M)
+
+# full model del
+# Since there is no significant deltoides in full model, so we skip this step for overlapping QTLs
+
+# full model nig
+nig.dos.overlap <- inner_join(nigsigs.name, dossigs.name, by="Pheno_M")
+unique(nig.dos.overlap$Pheno_M)
+```
+
+### search for genes
+```{r}
+genes <- read_tsv("/Users/wendy/Desktop/Lab/enrichment-ratio/Ptrichocarpa_210_v3.0.gene.gff3.txt", skip = 2, col_names = FALSE)
+genes %>%
+  filter(X1 == "Chr11") %>%
+  filter(X3 == "gene") %>%
+  filter(X5 >= 5977472 & X4 <= 7452295) %>%
+  mutate(GeneID = str_replace(string=X9, pattern="(.*)=(.*)=(.*)", replacement="\\3")) %>%
+  select(X1, X4, X5, GeneID)
+```
 
 
 

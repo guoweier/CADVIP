@@ -1,0 +1,375 @@
+---
+title: "F1 dosage"
+author: "Weier Guo"
+date: '2022-11-18'
+output: html_document
+---
+
+
+## Introduction ##
+This script is to extract and quantify copy number variations from Heloise dataset. 
+
+## import libraries ##
+```{r}
+library(tidyverse)
+```
+
+## load dataset ##
+```{r}
+tmp_info_lesion_unique_geno<-read.table("/Users/wendy/Desktop/QTL_demo_Weier/PopIndelsMasterList_v5_unique_genotype.txt",sep="\t",header=T,stringsAsFactors = F,na.strings = c("NA",".",""))
+tmp_info_lesion<-read.table("/Users/wendy/Desktop/QTL_demo_Weier/PopIndelsMasterList_v5.txt",sep="\t",header=TRUE, stringsAsFactors = F)
+dead<-read.table("/Users/wendy/Desktop/QTL_demo_Weier/PopIndelsMasterList_v5_unique_genotype_deadtoaddup.txt",sep="\t",header=T,stringsAsFactors = F,na.strings = c("NA",".",""))
+F1.lines <- read.table("/Users/wendy/Documents/CADVIP/QTL/F1_450/genotype/F1_lines_unique_20221118.csv", sep=",", header=T, stringsAsFactors = F)
+```
+
+
+## prepare the info lesion file, general info of lesion status (lesion-nonlesion, irradiation level) for each genotype  ##
+```{r}
+colnames (tmp_info_lesion) [1] <- 'Old.Name'
+colnames (tmp_info_lesion_unique_geno) [1] <- 'Old.Name'
+colnames (dead) [1]<- 'Old.Name'
+
+unique(tmp_info_lesion$Location)
+dead_name<- tmp_info_lesion[ which(tmp_info_lesion$Location=='Dead'), ]
+dead_name<- unique (dead_name$Old.Name)
+
+tmp_info_lesion_unique_geno<- tmp_info_lesion_unique_geno[ ! tmp_info_lesion_unique_geno$Old.Name %in% dead_name, ]
+info_lesion_unique_geno<- rbind (tmp_info_lesion_unique_geno, dead)
+```
+
+
+## test if all geno from geno list have info about lesion ##
+```{r}
+test<- merge (F1.lines [c('Old.Name')], info_lesion_unique_geno, by='Old.Name')
+setdiff (unique (F1.lines$Old.Name), unique (test$Old.Name))
+length (unique (F1.lines$Old.Name))
+length (unique (test$Old.Name))
+unique (test$Lesion)
+```
+
+
+## Prepare the lesion file with info of individual lesion position for each geno ##
+
+### use the karyotype script to create the bins specifically for each phenotype dataset ###
+
+### step 1 load the necessary files and do the prep ###
+```{r}
+#turn of scientific notation
+options(scipen=100)
+```
+
+#### load populus genome ####
+```{r}
+genome_table<-read.table("/Users/wendy/Desktop/QTL_demo_Weier/genome_table.txt",sep="\t",header=F,stringsAsFactors = F,na.strings = c("NA",".", ""))
+row.names(genome_table)<- genome_table$V1
+```
+
+#### add dead genotypes ####
+```{r}
+tmp_lesion<-read.table("/Users/wendy/Desktop/QTL_demo_Weier/PopIndelsMasterList_v5.txt",sep="\t",header=T,stringsAsFactors = F,na.strings = c("NA",".", ""))
+tmp_lesion_dead<- read.table("/Users/wendy/Desktop/QTL_demo_Weier/PopIndelsMasterList_v5_deadtoaddup.txt",sep="\t",header=T,stringsAsFactors = F,na.strings = c("NA",".",""))
+
+dead_name<- tmp_lesion[ which(tmp_lesion$Location=='Dead'), ]
+dead_name<- unique (dead_name$Old.Name)
+dead_name
+tmp_lesion<- tmp_lesion[!(tmp_lesion$Old.Name %in% dead_name),]
+tmp_lesion<- rbind (tmp_lesion, tmp_lesion_dead)
+```
+
+
+```{r}
+# attention fix a start indel genotype XXX_100_45 Start_bp is 13200001 instead of 132000001
+tmp<-tmp_lesion
+tmp$Start_bp[tmp$Start_bp=="132000001"]<-"13200001"
+tmp_lesion<- tmp
+```
+
+
+```{r}
+# fix two end of chromosome that got rounded
+tmp<- tmp_lesion
+tmp$End_bp [tmp$Chr==4 & tmp$End_bp==24300000]<- 24267051
+tmp$End_bp [tmp$Chr==10 & tmp$End_bp==22600000]<- 22580532
+tmp_lesion<- tmp
+```
+
+
+```{r}
+# attention fix IFG_100_66 Startb and End_bp on insertion Chromosome1 are swapped
+tmp<-tmp_lesion
+tmp[ which(tmp$Start_bp==46700000), ]
+tmp[ which(tmp$End_bp==37400000), ]
+tmp$Start_bp[tmp$Start_bp=="46700000"]<-"37400000"
+tmp$End_bp[tmp$End_bp=="37400000"]<-"46700000"
+tmp_lesion<-tmp
+```
+
+
+```{r}
+# create a new column chromosome.2
+tmp_lesion$Chromosome.2 <-NA
+tmp<-tmp_lesion$Chr
+for (i in 1:length(tmp)) 
+{
+  if ( is.na (tmp [i]) == TRUE) {
+    tmp [i] <- tmp [i]
+  } else if ( tmp [i] == "1") {
+    tmp [i] <- "Chr01"
+  } else if ( tmp [i] == "2") {
+    tmp [i] <- "Chr02"
+  } else if ( tmp [i] == "3" ){
+    tmp [i] <- "Chr03"
+  } else if ( tmp [i] == "4" ){
+    tmp [i] <- "Chr04"
+  } else if ( tmp [i] == "5" ){
+    tmp [i] <- "Chr05"
+  } else if ( tmp [i] == "6" ){
+    tmp [i] <- "Chr06"
+  } else if ( tmp [i] == "7" ){
+    tmp [i] <- "Chr07"
+  } else if ( tmp [i] == "8" ){
+    tmp [i] <- "Chr08"
+  } else if ( tmp [i] == "9" ){
+    tmp [i] <- "Chr09"
+  } else if ( tmp [i] == "10") {
+    tmp [i] <- "Chr10"
+  } else if ( tmp [i] == "11") {
+    tmp [i] <- "Chr11"
+  } else if ( tmp [i] == "12" ){
+    tmp [i] <- "Chr12"
+  } else if ( tmp [i] == "13" ){
+    tmp [i] <- "Chr13"
+  } else if ( tmp [i] == "14" ){
+    tmp [i] <- "Chr14"
+  } else if ( tmp [i] == "15" ){
+    tmp [i] <- "Chr15"
+  } else if ( tmp [i] == "16" ){
+    tmp [i] <- "Chr16"
+  } else if ( tmp [i] == "17" ){
+    tmp [i] <- "Chr17"
+  } else if ( tmp [i] == "18" ){
+    tmp [i] <- "Chr18"
+  } else if ( tmp [i] == "19" ){
+    tmp [i] <- "Chr19"
+  }   else
+    tmp [i] <- tmp [i]
+}
+
+tmp_lesion$Chromosome.2<-tmp
+unique (tmp_lesion$Chromosome.2)
+
+tmp_lesion$Start_bp<-as.numeric (tmp_lesion$Start_bp)
+tmp_lesion$End_bp <- as.numeric (tmp_lesion$End_bp)
+lesion<-tmp_lesion
+```
+
+
+## Create the bin file , for my F1 genotype list (346 lines) ##
+### keep genotypes in use in phenotypic data
+```{r}
+names_geno_variable_all <- unique(F1.lines$Old.Name)
+```
+
+
+### keep only the genotype from your F1 genotype list (346 lines) ###
+```{r}
+tmp_lesion<- lesion[lesion$Old.Name %in% names_geno_variable_all, ]
+
+unique(tmp_lesion$Old.Name)
+unique (tmp_lesion$F1_Ploidy)
+```
+
+### add the fromRedoA if ploidy available
+```{r}
+unique (tmp_lesion$Lesion)
+unique (tmp_lesion$Sample_Note)
+unique (tmp_lesion$Origin_of_lesion)
+
+tmp_lesion<-tmp_lesion[which(tmp_lesion$Origin_of_lesion =="N" |tmp_lesion$Origin_of_lesion =="NN" |is.na (tmp_lesion$Origin_of_lesion) == TRUE),]
+tmp_lesion<-tmp_lesion[which(tmp_lesion$Sample_Note=="OK"),]
+
+unique (tmp_lesion$Lesion)
+unique (tmp_lesion$Sample_Note)
+unique (tmp_lesion$Origin_of_lesion)
+```
+
+### build table of breakpoints by generating list of unique breakpoints
+```{r}
+uStart<-paste(tmp_lesion$Chromosome.2,"_",tmp_lesion$Start_bp,sep="")
+uEnd<-paste(tmp_lesion$Chromosome.2,"_",tmp_lesion$End_bp,sep="")
+
+uB<-unique(c(uStart,uEnd))
+```
+
+
+### convert the list back to data.frame and split the unique names back to coordinates
+```{r}
+uBreaks<-do.call(rbind,strsplit(uB,"_"))
+uBreaks<-cbind(uBreaks,as.data.frame(uB))
+names(uBreaks)<-c("space","start","ID")
+uBreaks$start<-as.numeric(as.character(uBreaks$start))
+```
+
+### remove NA for non lesion data
+```{r}
+uBreaks<-uBreaks[which(!is.na (uBreaks$start) == TRUE),]
+```
+
+
+### sort uBreaks by chromosome and then position
+```{r}
+uBreaksSort<-uBreaks[order(uBreaks$space,uBreaks$start),]
+
+uBreaksSort$end<-c(uBreaksSort$start[2:length(uBreaksSort$start)],uBreaksSort$start[length(uBreaksSort$start)])
+uBreaksSort$width<-uBreaksSort$end-uBreaksSort$star
+```
+
+
+### remove overlapping beginning and ends
+```{r}
+uBreaksSort<-uBreaksSort[which(uBreaksSort$width>1),]
+```
+
+
+### translate start break points to base 1
+```{r}
+uBreaksSort$start<-lapply(uBreaksSort$start, function(x) 
+{
+  tmp<-strsplit(as.character(x),"")[[1]]
+  if(tmp[length(tmp)]== 0) 
+  {
+    x<-x+1
+  } else {
+    x
+  }
+}
+)
+```
+
+
+### translate end break points to 0 base but don' modify the chromosome ends
+```{r}
+uBreaksSort$end<-lapply(uBreaksSort$end, function(x) 
+{
+  if(x %in% genome_table$seqlengths.pt210.)
+  {
+    x
+  } else {
+    tmp<-strsplit(as.character(x),"")[[1]]
+    if(tmp[length(tmp)]== 1) 
+    {
+      x<-x-1
+    } else {
+      x
+    }
+  }
+}
+)
+
+uBreaksFinal<-uBreaksSort
+```
+
+### create new ID for bins, having information on start and end of lesion
+```{r}
+uBreaksFinal$'ID'<-paste(uBreaksFinal$'space', uBreaksFinal$'start', uBreaksFinal$'end', sep='_') 
+```
+
+### build empty table
+```{r}
+genoTable<-data.frame(matrix(vector(), length(unique(tmp_lesion$Old.Name)), length(uBreaksFinal$ID), dimnames=list(unique(tmp_lesion$Old.Name), uBreaksFinal$ID)), stringsAsFactors=F)
+```
+
+
+### get ploidy for lesion individuals
+```{r}
+ploidy<-tmp_lesion[,c("Old.Name","F1_Ploidy")]
+ploidy<-unique(ploidy)
+row.names(ploidy)<-ploidy[,1]
+unique (ploidy$F1_Ploidy)
+```
+
+### add base ploidy to table
+```{r}
+for(p in 1:nrow(genoTable))
+{
+  if(ploidy[row.names(genoTable)[p],2]=="2") 
+  {
+    genoTable[p,]<-2
+  } else if (ploidy[row.names(genoTable)[p],2]=="3" )
+  {
+    genoTable[p,]<-3
+  } else if (ploidy[row.names(genoTable)[p],2]=="4" )
+  {
+    genoTable[p,]<-4
+  }
+  
+}
+```
+
+
+### loop over all lesions and update the genoTable with bin specific dosage
+```{r}
+for(u in 1:nrow(tmp_lesion))
+{
+  #limit lesion to chromosome
+  index<- which(uBreaksFinal$space==tmp_lesion$Chromosome.2[u])
+  #loop over chr break points 
+  for( y in index)
+  {
+    if(tmp_lesion$Start_[u] <= uBreaksFinal$start[y] & tmp_lesion$End_bp[u] >= uBreaksFinal$end[y] ) 
+    {
+      genoTable[tmp_lesion$Old.Name[u],y]<- tmp_lesion$Lesion_Copy_Number[u]
+    }
+  }
+  
+}
+```
+
+
+### Create variable that contains information about the location of bins
+```{r}
+head<-uBreaksFinal[,c(1,2,4)]
+head$start<-as.numeric(as.character(head$start))
+head$end<-as.numeric(as.character(head$end))
+row.names(head)<-as.character(paste(head$space,head$start,head$end,sep="_"))
+```
+
+### renames the genoTable to have the same bin names
+```{r}
+names(genoTable)<-row.names(head)
+```
+
+
+### create a table with the relative dosage for each bin=gene dosage at the bin/gene dosage of background
+```{r}
+genoTable_relative_dosage <- genoTable
+genoTable_relative_dosage["Background_ploidy"] <- NA
+genoTable_relative_dosage$"Background_ploidy"<-ploidy$"F1_Ploidy"
+colnames (genoTable_relative_dosage)
+
+for (i in 1:length (genoTable_relative_dosage) ) {
+  as.numeric(genoTable_relative_dosage[i, ])
+}
+
+for (i in 1:nrow (genoTable_relative_dosage) ) {
+  genoTable_relative_dosage[i,] =genoTable_relative_dosage[i,]/genoTable_relative_dosage$'Background_ploidy'[i]
+}
+
+
+genoTable_relative_dosage$Background_ploidy<-NULL
+genoTable_relative_dosage <- rownames_to_column(genoTable_relative_dosage, "Old.Name")
+genoTable <- rownames_to_column(genoTable, "Old.Name")
+```
+
+
+## write the results to file
+```{r}
+write.table(genoTable_relative_dosage,file= "../F1_450/genotype/genoTable_relative_dosage_geno_20221118.txt",col.names=NA, sep="\t")
+write.table(genoTable,file="../F1_450/genotype/genoTable_geno_20221118.txt" ,col.names=NA, sep="\t") 
+```
+
+
+
+
+
+

@@ -1,5 +1,7 @@
 # Weier Guo Python
-# 08/01/2022
+# 08/01/2022 create
+# 11/18/2022 update: extract more valuable information from the new combined markers. To do this, I get alleles based on the frequency of NA in combined alleles.
+# 12/05/2022 update: remove the 11/18/2022 update 
 
 import os, sys, math
 from optparse import OptionParser
@@ -31,6 +33,19 @@ s_hd = s_head.split("\t")[1:]
 g_head = g.readline()
 g_head = g_head.split("\n")[0]
 g_hd = g_head.split("\t")[1:]
+
+# function: count each variable numbers in the list
+def var_num(L):
+	result = {}
+	L_un = list(set(L))
+	for x in L_un:
+		count = 0
+		for i in L:
+			if i == x:
+				count += 1
+		result[x] = count
+	return result
+
 
 ### SET THE HEADER OF NEW FILE ###
 # get each standard marker info
@@ -79,11 +94,12 @@ for line in g:
 		alleles = []
 		for i in New_markers[key]:
 			alleles.append(ln[i])
+		alleles_count = var_num(alleles)
 		if "NA" in alleles:
 			allele = "NA"
 		else:
 			Alleles = list(map(lambda x: round(float(x),1), alleles))
-			allele = round(statistics.mean(Alleles),2)
+			allele = round(statistics.mean(Alleles),1)
 		text += "\t" + str(allele)
 	o.write(text+"\n")
 

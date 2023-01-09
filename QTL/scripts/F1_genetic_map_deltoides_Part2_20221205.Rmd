@@ -1,0 +1,517 @@
+---
+title: "F1_genetic_map_Part2"
+author: "Weier Guo"
+date: '2022-12-05'
+output: html_document
+---
+
+# Introduction #
+Order markers within chromosomes (Continued with Part 1 R Markdown). 
+
+# Outline #
+1. Load packages and dataset
+2. Switch/Delete alleles (based on marker ordering within chromosome)
+3. Redo linkage group 
+4. Order markers within each chromosome
+
+# Load dataset and library 
+## library 
+```{r}
+library("tidyverse")
+library("qtl")
+library("ggplot2")
+library("formattable")
+library("emmeans")
+```
+
+## dataset ##
+```{r}
+load("../F1_450/New_LinkageGroups/Pdeltoides_GeneticMap_Part1_20221206.RData")
+```
+
+# Order Markers within chromosome 
+## genetic map plot 
+```{r}
+plotMap(Pdeltoides_gmap)
+```
+
+
+## Chr12 
+```{r}
+Pdeltoides_gmap = orderMarkers(Pdeltoides_gmap, chr = 12)
+pull.map(Pdeltoides_gmap, chr = 12)
+```
+
+```{r}
+rip12 = ripple(Pdeltoides_gmap, chr=12, window = 7)
+summary(rip12)
+```
+
+```{r}
+rip12lik = ripple(Pdeltoides_gmap, chr=12, window = 4, method = "likelihood", error.prob = 0.005)
+summary(rip12lik)
+```
+
+no change
+```{r}
+rip12lik0 = switch.order(Pdeltoides_gmap, chr=12, c(1:7), error.prob = 0.005)
+pull.map(rip12lik0, chr=12)
+```
+
+
+```{r}
+Pdeltoides_gmap = switch.order(Pdeltoides_gmap, chr=12, c(1:7), error.prob = 0.005)
+pull.map(Pdeltoides_gmap, chr=12)
+```
+
+## Chr19
+```{r}
+Pdeltoides_gmap = orderMarkers(Pdeltoides_gmap, chr = 19)
+pull.map(Pdeltoides_gmap, chr = 19)
+```
+
+```{r}
+rip19 = ripple(Pdeltoides_gmap, chr=19, window = 7)
+summary(rip19)
+```
+
+```{r}
+rip19lik = ripple(Pdeltoides_gmap, chr=19, window = 4, method = "likelihood", error.prob = 0.005)
+summary(rip19lik)
+```
+
+switch (M8,M7) increase LOD by 0, decrease chromosome length by 0.1 original order.
+Original Order.
+```{r}
+rip19lik0 = switch.order(Pdeltoides_gmap, chr=19, c(1:8), error.prob = 0.005)
+pull.map(rip19lik0, chr=19)
+```
+
+(M8,M7)
+```{r}
+rip19lik1 = switch.order(Pdeltoides_gmap, chr=19, c(1:6,8,7), error.prob = 0.005)
+pull.map(rip19lik1, chr=19)
+```
+
+Choose order 1. 
+```{r}
+Pdeltoides_gmap = switch.order(Pdeltoides_gmap, chr=19, c(1:6,8,7), error.prob = 0.005)
+pull.map(Pdeltoides_gmap, chr=19)
+```
+
+## Chr17
+```{r}
+Pdeltoides_gmap = orderMarkers(Pdeltoides_gmap, chr = 17)
+pull.map(Pdeltoides_gmap, chr = 17)
+```
+
+```{r}
+rip17 = ripple(Pdeltoides_gmap, chr=17, window = 7)
+summary(rip17)
+```
+
+
+```{r}
+rip17lik = ripple(Pdeltoides_gmap, chr=17, window = 4, method = "likelihood", error.prob = 0.005)
+summary(rip17lik)
+```
+
+original order.
+```{r}
+rip17lik0 = switch.order(Pdeltoides_gmap, chr=17, c(1:13), error.prob = 0.005)
+pull.map(rip17lik0, chr=17)
+```
+
+no change.
+```{r}
+Pdeltoides_gmap = switch.order(Pdeltoides_gmap, chr=17, c(1:13), error.prob = 0.005)
+pull.map(Pdeltoides_gmap, chr=17)
+```
+
+
+## Chr16
+```{r}
+Pdeltoides_gmap = orderMarkers(Pdeltoides_gmap, chr = 16)
+pull.map(Pdeltoides_gmap, chr = 16)
+```
+
+```{r}
+rip16 = ripple(Pdeltoides_gmap, chr=16, window = 7)
+summary(rip16)
+```
+
+```{r}
+rip16lik = ripple(Pdeltoides_gmap, chr=16, window = 4, method = "likelihood", error.prob = 0.005)
+summary(rip16lik)
+```
+
+original order. 
+```{r}
+rip16lik0 = switch.order(Pdeltoides_gmap, chr=16, c(1:13), error.prob = 0.005)
+pull.map(rip16lik0, chr=16)
+```
+
+no change. 
+```{r}
+Pdeltoides_gmap = switch.order(Pdeltoides_gmap, chr=16, c(1:13), error.prob = 0.005)
+pull.map(Pdeltoides_gmap, chr=16)
+```
+
+## Chr18
+```{r}
+Pdeltoides_gmap = orderMarkers(Pdeltoides_gmap, chr = 18)
+pull.map(Pdeltoides_gmap, chr = 18)
+```
+
+```{r}
+rip18 = ripple(Pdeltoides_gmap, chr=18, window = 7)
+summary(rip18)
+```
+
+```{r}
+rip18lik = ripple(Pdeltoides_gmap, chr=18, window = 4, method = "likelihood", error.prob = 0.005)
+summary(rip18lik)
+```
+
+original order.
+```{r}
+rip18lik0 = switch.order(Pdeltoides_gmap, chr=18, c(1:18), error.prob = 0.005)
+pull.map(rip18lik0, chr=18)
+```
+
+no change.
+```{r}
+Pdeltoides_gmap = switch.order(Pdeltoides_gmap, chr=18, c(1:18), error.prob = 0.005)
+pull.map(Pdeltoides_gmap, chr=18)
+```
+
+
+## Chr15
+```{r}
+Pdeltoides_gmap = orderMarkers(Pdeltoides_gmap, chr = 15)
+pull.map(Pdeltoides_gmap, chr = 15)
+```
+
+```{r}
+rip15 = ripple(Pdeltoides_gmap, chr=15, window = 7)
+summary(rip15)
+```
+
+```{r}
+rip15lik = ripple(Pdeltoides_gmap, chr=15, window = 4, method = "likelihood", error.prob = 0.005)
+summary(rip15lik)
+```
+
+no change.
+```{r}
+rip15lik0 = switch.order(Pdeltoides_gmap, chr=15, c(1:19), error.prob = 0.005)
+pull.map(rip15lik0, chr=15)
+```
+
+
+```{r}
+Pdeltoides_gmap = switch.order(Pdeltoides_gmap, chr=15, c(1:19), error.prob = 0.005)
+pull.map(Pdeltoides_gmap, chr=15)
+```
+
+
+
+
+
+
+
+
+
+
+
+## Chr13
+```{r}
+Pdeltoides_gmap = orderMarkers(Pdeltoides_gmap, chr = 13)
+pull.map(Pdeltoides_gmap, chr = 13)
+```
+
+```{r}
+rip13 = ripple(Pdeltoides_gmap, chr=13, window = 7)
+summary(rip13)
+```
+
+```{r}
+rip13lik = ripple(Pdeltoides_gmap, chr=13, window = 4, method = "likelihood", error.prob = 0.005)
+summary(rip13lik)
+```
+
+original order.
+```{r}
+rip13lik0 = switch.order(Pdeltoides_gmap, chr=13, c(1:19), error.prob = 0.005)
+pull.map(rip13lik0, chr=13)
+```
+
+no change.
+```{r}
+Pdeltoides_gmap = switch.order(Pdeltoides_gmap, chr=13, c(1:19), error.prob = 0.005)
+pull.map(Pdeltoides_gmap, chr=13)
+```
+
+
+## Chr11
+```{r}
+Pdeltoides_gmap = orderMarkers(Pdeltoides_gmap, chr = 11)
+pull.map(Pdeltoides_gmap, chr = 11)
+```
+
+```{r}
+rip11 = ripple(Pdeltoides_gmap, chr=11, window = 7)
+summary(rip11)
+```
+
+```{r}
+rip11lik = ripple(Pdeltoides_gmap, chr=11, window = 4, method = "likelihood", error.prob = 0.005)
+summary(rip11lik)
+```
+
+original order.
+```{r}
+rip11lik0 = switch.order(Pdeltoides_gmap, chr=11, c(1:20), error.prob = 0.005)
+pull.map(rip11lik0, chr=11)
+```
+
+no change.
+```{r}
+Pdeltoides_gmap = switch.order(Pdeltoides_gmap, chr=11, c(1:20), error.prob = 0.005)
+pull.map(Pdeltoides_gmap, chr=11)
+```
+
+
+## Chr14
+```{r}
+Pdeltoides_gmap = orderMarkers(Pdeltoides_gmap, chr = 14)
+pull.map(Pdeltoides_gmap, chr = 14)
+```
+
+
+```{r}
+rip14 = ripple(Pdeltoides_gmap, chr=14, window = 7)
+summary(rip14)
+```
+
+```{r}
+rip14lik = ripple(Pdeltoides_gmap, chr=14, window = 4, method = "likelihood", error.prob = 0.005)
+summary(rip14lik)
+```
+
+original order. 
+```{r}
+rip14lik0 = switch.order(Pdeltoides_gmap, chr=14, c(1:22), error.prob = 0.005)
+pull.map(rip14lik0, chr=14)
+```
+
+no change.
+```{r}
+Pdeltoides_gmap = switch.order(Pdeltoides_gmap, chr=14, c(1:22), error.prob = 0.005)
+pull.map(Pdeltoides_gmap, chr=14)
+```
+
+
+## Chr7
+```{r}
+Pdeltoides_gmap = orderMarkers(Pdeltoides_gmap, chr = 7)
+pull.map(Pdeltoides_gmap, chr = 7)
+```
+
+
+```{r}
+rip7 = ripple(Pdeltoides_gmap, chr=7, window = 7)
+summary(rip7)
+```
+
+
+```{r}
+rip7lik = ripple(Pdeltoides_gmap, chr=7, window = 4, method = "likelihood", error.prob = 0.005)
+summary(rip7lik)
+```
+
+Original order.
+```{r}
+rip7lik0 = switch.order(Pdeltoides_gmap, chr=7, c(1:22), error.prob = 0.005)
+pull.map(rip7lik0, chr=7)
+```
+
+no change.
+```{r}
+Pdeltoides_gmap = switch.order(Pdeltoides_gmap, chr=7, c(1:22), error.prob = 0.005)
+pull.map(Pdeltoides_gmap, chr=7)
+```
+
+
+## Chr9
+```{r}
+Pdeltoides_gmap = orderMarkers(Pdeltoides_gmap, chr = 9)
+pull.map(Pdeltoides_gmap, chr = 9)
+```
+
+
+```{r}
+rip9 = ripple(Pdeltoides_gmap, chr=9, window = 7)
+summary(rip9)
+```
+
+
+```{r}
+rip9lik = ripple(Pdeltoides_gmap, chr=9, window = 4, method = "likelihood", error.prob = 0.005)
+summary(rip9lik)
+```
+
+original order. 
+```{r}
+rip9lik0 = switch.order(Pdeltoides_gmap, chr=9, c(1:25), error.prob = 0.005)
+pull.map(rip9lik0, chr=9)
+```
+
+
+no change.
+```{r}
+Pdeltoides_gmap = switch.order(Pdeltoides_gmap, chr=9, c(1:25), error.prob = 0.005)
+pull.map(Pdeltoides_gmap, chr=9)
+```
+
+
+## Chr10
+```{r}
+Pdeltoides_gmap = orderMarkers(Pdeltoides_gmap, chr = 10)
+pull.map(Pdeltoides_gmap, chr = 10)
+```
+
+```{r}
+rip10 = ripple(Pdeltoides_gmap, chr=10, window = 7)
+summary(rip10)
+```
+
+
+```{r}
+rip10lik = ripple(Pdeltoides_gmap, chr=10, window = 4, method = "likelihood", error.prob = 0.005)
+summary(rip10lik)
+```
+
+
+original order.
+```{r}
+rip10lik0 = switch.order(Pdeltoides_gmap, chr=10, c(1:29), error.prob = 0.005)
+pull.map(rip10lik0, chr=10)
+```
+
+no change.
+```{r}
+Pdeltoides_gmap = switch.order(Pdeltoides_gmap, chr=10, c(1:29), error.prob = 0.005)
+pull.map(Pdeltoides_gmap, chr=10)
+```
+
+
+## Chr4
+```{r}
+Pdeltoides_gmap = orderMarkers(Pdeltoides_gmap, chr = 4)
+pull.map(Pdeltoides_gmap, chr = 4)
+```
+
+```{r}
+rip4 = ripple(Pdeltoides_gmap, chr=4, window = 7)
+summary(rip4)
+```
+
+
+```{r}
+rip4lik = ripple(Pdeltoides_gmap, chr=4, window = 4, method = "likelihood", error.prob = 0.005)
+summary(rip4lik)
+```
+
+original order.
+```{r}
+rip4lik0 = switch.order(Pdeltoides_gmap, chr=4, c(1:34), error.prob = 0.005)
+pull.map(rip4lik0, chr=4)
+```
+
+no change. 
+```{r}
+Pdeltoides_gmap = switch.order(Pdeltoides_gmap, chr=4, c(1:34), error.prob = 0.005)
+pull.map(Pdeltoides_gmap, chr=4)
+```
+
+
+## Chr3
+```{r}
+Pdeltoides_gmap = orderMarkers(Pdeltoides_gmap, chr = 3)
+pull.map(Pdeltoides_gmap, chr = 3)
+```
+
+
+```{r}
+rip3 = ripple(Pdeltoides_gmap, chr=3, window = 7)
+summary(rip3)
+```
+
+
+```{r}
+rip3lik = ripple(Pdeltoides_gmap, chr=3, window = 4, method = "likelihood", error.prob = 0.005)
+summary(rip3lik)
+```
+
+
+original order.
+```{r}
+rip3lik0 = switch.order(Pdeltoides_gmap, chr=3, c(1:34), error.prob = 0.005)
+pull.map(rip3lik0, chr=3)
+```
+
+no change.
+```{r}
+Pdeltoides_gmap = switch.order(Pdeltoides_gmap, chr=3, c(1:34), error.prob = 0.005)
+pull.map(Pdeltoides_gmap, chr=3)
+```
+
+
+## Chr5
+```{r}
+Pdeltoides_gmap = orderMarkers(Pdeltoides_gmap, chr = 5)
+pull.map(Pdeltoides_gmap, chr = 5)
+```
+
+```{r}
+rip5 = ripple(Pdeltoides_gmap, chr=5, window = 7)
+summary(rip5)
+```
+
+
+```{r}
+rip5lik = ripple(Pdeltoides_gmap, chr=5, window = 4, method = "likelihood", error.prob = 0.005)
+summary(rip5lik)
+```
+
+original order.
+```{r}
+rip5lik0 = switch.order(Pdeltoides_gmap, chr=5, c(1:37), error.prob = 0.005)
+pull.map(rip5lik0, chr=5)
+```
+
+no change.
+```{r}
+Pdeltoides_gmap = switch.order(Pdeltoides_gmap, chr=5, c(1:37), error.prob = 0.005)
+pull.map(Pdeltoides_gmap, chr=5)
+```
+
+
+## Chr8
+```{r}
+Pdeltoides_gmap = orderMarkers(Pdeltoides_gmap, chr = 8)
+pull.map(Pdeltoides_gmap, chr = 8)
+```
+
+```{r}
+rip8 = ripple(Pdeltoides_gmap, chr=8, window = 7)
+summary(rip8)
+```
+
+
+```{r}
+rip8lik = ripple(Pdeltoides_gmap, chr=8, window = 4, method = "likelihood", error.prob = 0.005)
+summary(rip8lik)
+```
+

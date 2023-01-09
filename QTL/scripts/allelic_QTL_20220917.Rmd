@@ -21,14 +21,15 @@ Model:
 library(tidyverse)
 library(qqman)
 library(ggplot2)
+library(stats)
 ```
 
 #### dataset ####
 ```{r}
 # genotypes
-nigra_gt <- read_tsv("../output/Pnigra_genome_marker_20220917.txt")
-deltoides_gt <- read_tsv("../output/Pdeltoides_nigraMarker_20220917.txt")
-dosage_gt <- read_tsv("../output/Dosage_nigraMarker_20220917.txt")
+nigra_gt <- read_tsv("../F1_450/genotype/Pnigra_F1_deltoidesGeno_imputed_sparsed_20221215.txt")
+deltoides_gt <- read_tsv("../F1_450/genotype/Pdeltoides_F1_deltoidesGeno_imputed_sparsed_20221215.txt")
+dosage_gt <- read_tsv("../F1_450/genotype/Dosage_F1_deltoidesGeno_sparsed_20221215.txt")
 nigra_gt
 deltoides_gt
 dosage_gt
@@ -135,17 +136,21 @@ library(lme4)
 #### Recurrently generate all leaf morphology Manhattan plot and pvalue files ####
 ```{r}
 # deltoides
-for (j in 959:length(leaf.Del)) {
+for (j in 509:length(leaf.Del)) {
   Pheno <- leaf.Del[,j]
   pheno.name <- colnames(leaf.Del)[j]
-  geno <- seq(2,958)
+  geno <- seq(2,508)
   model.pvalue <- tibble(Marker = c("Test"), 
                         Intercept = c(123), 
-                        Deltoides = c(123))
+                        Deltoides = c(123),
+                        R_squared = c(123))
 
   for (i in geno) {
     colnames(leaf.Del)
     m <- summary(lm(Pheno ~ leaf.Del[,i], data = leaf.Del))
+    # get adj. r-squared for model efficiency
+    rsq <- m$adj.r.squared * 100
+    # get pvalue
     pvalue <- m$coefficients[,4]
     if (length(pvalue) < 2) {
       diff <- 2 - length(pvalue)
@@ -153,7 +158,7 @@ for (j in 959:length(leaf.Del)) {
         pvalue <- c(pvalue,"NA")
       }
     }
-    P.value <- c(colnames(deltoides_gt)[i],pvalue)
+    P.value <- c(colnames(deltoides_gt)[i],pvalue,rsq)
     model.pvalue <- rbind(model.pvalue,P.value)
   }
   model.pvalue <- model.pvalue %>% 
@@ -163,15 +168,15 @@ for (j in 959:length(leaf.Del)) {
     mutate(BP = as.numeric(str_replace(string = Marker, pattern = "(...)(..)_(.*)_(.*)", replacement = "\\3")))
   
   # save pvalue file
-  write_csv(model.pvalue, paste("../Pvalue_Leaf_D/", pheno.name, ".csv", sep = ""))
+  write_csv(model.pvalue, paste("../F1_450/Del/BH/Pvalue/Leaf/delGeno/", pheno.name, ".csv", sep = ""))
   
   # Manhattan plot for four variables
   # Deltoides
   Del.man <- model.pvalue %>%
     select(Marker, CHR, BP, Del_P_adj) %>%
     filter(Del_P_adj != "NA")
-  manhattan(Del.man, snp = "Marker", p = "Del_P_adj", suggestiveline = -log10(0.05), genomewideline =-log10(0.1), main = paste("Manhattan_Deltoides", pheno.name, sep = "_"))
-  dev.copy(png, paste("../Manhattan_Leaf_D/Manhattan_Deltoides_", pheno.name, ".png", sep = ""), width = 500, height = 300)
+  manhattan(Del.man, snp = "Marker", p = "Del_P_adj", suggestiveline = -log10(0.05), genomewideline =-log10(0.01), main = paste("Leaf_Del", pheno.name, sep = "_"))
+  dev.copy(png, paste("../F1_450/Del/BH/Manhattan/delGeno/Leaf_Del_", pheno.name, ".png", sep = ""), width = 500, height = 300)
   dev.off()
 }
 
@@ -181,17 +186,21 @@ for (j in 959:length(leaf.Del)) {
 
 ```{r}
 # nigra
-for (j in 959:length(leaf.Nig)) {
+for (j in 509:length(leaf.Nig)) {
   Pheno <- leaf.Nig[,j]
   pheno.name <- colnames(leaf.Nig)[j]
-  geno <- seq(2,958)
+  geno <- seq(2,508)
   model.pvalue <- tibble(Marker = c("Test"), 
                         Intercept = c(123), 
-                        Nigra = c(123))
+                        Nigra = c(123),
+                        R_squared = c(123))
 
   for (i in geno) {
     colnames(leaf.Nig)
     m <- summary(lm(Pheno ~ leaf.Nig[,i], data = leaf.Nig))
+    # get adj. r-squared for model efficiency
+    rsq <- m$adj.r.squared * 100
+    # get pvalue
     pvalue <- m$coefficients[,4]
     if (length(pvalue) < 2) {
       diff <- 2 - length(pvalue)
@@ -199,7 +208,7 @@ for (j in 959:length(leaf.Nig)) {
         pvalue <- c(pvalue,"NA")
       }
     }
-    P.value <- c(colnames(nigra_gt)[i],pvalue)
+    P.value <- c(colnames(nigra_gt)[i],pvalue,rsq)
     model.pvalue <- rbind(model.pvalue,P.value)
   }
   model.pvalue <- model.pvalue %>% 
@@ -209,15 +218,15 @@ for (j in 959:length(leaf.Nig)) {
     mutate(BP = as.numeric(str_replace(string = Marker, pattern = "(...)(..)_(.*)_(.*)", replacement = "\\3")))
   
   # save pvalue file
-  write_csv(model.pvalue, paste("../Pvalue_Leaf_N/", pheno.name, ".csv", sep = ""))
+  write_csv(model.pvalue, paste("../F1_450/Nig/BH/Pvalue/Leaf/delGeno/", pheno.name, ".csv", sep = ""))
   
   # Manhattan plot for four variables
   # Deltoides
   Nig.man <- model.pvalue %>%
     select(Marker, CHR, BP, Nig_P_adj) %>%
     filter(Nig_P_adj != "NA")
-  manhattan(Nig.man, snp = "Marker", p = "Nig_P_adj", suggestiveline = -log10(0.05), genomewideline =-log10(0.1), main = paste("Manhattan_Nigra", pheno.name, sep = "_"))
-  dev.copy(png, paste("../Manhattan_Leaf_N/Manhattan_Nigra_", pheno.name, ".png", sep = ""), width = 500, height = 300)
+  manhattan(Nig.man, snp = "Marker", p = "Nig_P_adj", suggestiveline = -log10(0.05), genomewideline =-log10(0.01), main = paste("Leaf_Nig", pheno.name, sep = "_"))
+  dev.copy(png, paste("../F1_450/Nig/BH/Manhattan/delGeno/Leaf_Nig_", pheno.name, ".png", sep = ""), width = 500, height = 300)
   dev.off()
 }
 
@@ -226,17 +235,21 @@ for (j in 959:length(leaf.Nig)) {
 
 ```{r}
 # dosage
-for (j in 959:length(leaf.Dos)) {
+for (j in 509:length(leaf.Dos)) {
   Pheno <- leaf.Dos[,j]
   pheno.name <- colnames(leaf.Dos)[j]
-  geno <- seq(2,958)
+  geno <- seq(2,508)
   model.pvalue <- tibble(Marker = c("Test"), 
                         Intercept = c(123), 
-                        Dosage = c(123))
+                        Dosage = c(123),
+                        R_squared = c(123))
 
   for (i in geno) {
     colnames(leaf.Dos)
     m <- summary(lm(Pheno ~ leaf.Dos[,i], data = leaf.Dos))
+    # get adj. r-squared for model efficiency
+    rsq <- m$adj.r.squared * 100
+    # get pvalue
     pvalue <- m$coefficients[,4]
     if (length(pvalue) < 2) {
       diff <- 2 - length(pvalue)
@@ -244,7 +257,7 @@ for (j in 959:length(leaf.Dos)) {
         pvalue <- c(pvalue,"NA")
       }
     }
-    P.value <- c(colnames(dosage_gt)[i],pvalue)
+    P.value <- c(colnames(dosage_gt)[i],pvalue,rsq)
     model.pvalue <- rbind(model.pvalue,P.value)
   }
   model.pvalue <- model.pvalue %>% 
@@ -254,15 +267,15 @@ for (j in 959:length(leaf.Dos)) {
     mutate(BP = as.numeric(str_replace(string = Marker, pattern = "(...)(..)_(.*)_(.*)", replacement = "\\3")))
   
   # save pvalue file
-  write_csv(model.pvalue, paste("../Pvalue_Leaf_Dos/", pheno.name, ".csv", sep = ""))
+  write_csv(model.pvalue, paste("../F1_450/Dos/BH/Pvalue/Leaf/delGeno/", pheno.name, ".csv", sep = ""))
   
   # Manhattan plot for four variables
   # Deltoides
   Dos.man <- model.pvalue %>%
     select(Marker, CHR, BP, Dos_P_adj) %>%
     filter(Dos_P_adj != "NA")
-  manhattan(Dos.man, snp = "Marker", p = "Dos_P_adj", suggestiveline = -log10(0.05), genomewideline =-log10(0.1), main = paste("Manhattan_Dosage", pheno.name, sep = "_"))
-  dev.copy(png, paste("../Manhattan_Leaf_Dos/Manhattan_Dosage_", pheno.name, ".png", sep = ""), width = 500, height = 300)
+  manhattan(Dos.man, snp = "Marker", p = "Dos_P_adj", suggestiveline = -log10(0.05), genomewideline =-log10(0.01), main = paste("Leaf_Dos", pheno.name, sep = "_"))
+  dev.copy(png, paste("../F1_450/Dos/BH/Manhattan/delGeno/Leaf_Dos_", pheno.name, ".png", sep = ""), width = 500, height = 300)
   dev.off()
 }
 

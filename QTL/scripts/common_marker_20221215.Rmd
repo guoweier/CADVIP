@@ -1,0 +1,19 @@
+---
+title: "Common markers"
+author: "Weier Guo"
+date: '2022-12-16'
+output: html_document
+---
+
+# Introduction 
+Get a common marker list for P.deltoides and P.nigra.
+1. Distribution of marker size
+2. Distribution of marker distance. 
+
+
+
+
+
+
+
+
